@@ -17,3 +17,13 @@
 <img src="./Day1_基本模块原理.assets/image-20250912185912649.png" alt="image-20250912185912649" style="zoom: 67%;" />
 
 <p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图3：RS锁存器2</p>
+
+![image-20250913110553025](./Day1_基本模块原理.assets/image-20250913110553025.png)
+
+<p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图4：LED锁存器</p>
+
+### 38译码器
+
+![image-20250913110937724](./Day1_基本模块原理.assets/image-20250913110937724.png)
+
+![image-20250913110956229](./Day1_基本模块原理.assets/image-20250913110956229.png)
