@@ -1,6 +1,6 @@
 # 一、LED模块
 
-<img src="./Day1_基本模块原理.assets/image-20250912184938303.png" alt="image-20250912184938303" style="zoom:50%;" />
+![image-20250912184938303](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250912184938303.png)
 
 <p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图1：LED驱动电路</p>
 
@@ -8,31 +8,31 @@
 
 ### RS锁存器
 
-<img src="./Day1_基本模块原理.assets/image-20250912173629234.png" style="zoom:50%;" />
+![image-20250912173629234](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250912173629234.png)
 
 <p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图2：RS锁存器</p>
 
 ### 加上使能
 
-<img src="./Day1_基本模块原理.assets/image-20250912185912649.png" alt="image-20250912185912649" style="zoom: 67%;" />
+![image-20250912185912649](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250912185912649.png)
 
 <p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图3：RS锁存器2</p>
 
-![image-20250913110553025](./Day1_基本模块原理.assets/image-20250913110553025.png)
+![image-20250913110553025](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913110553025.png)
 
-<p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图4：LED锁存器</p>
+<p style="text-align: center; font-style: italic; font-size: 14px; margin-top: 5px;">图4：LED锁存器（74HC573)</p>
 
 ### 38译码器
 
-![image-20250913110937724](./Day1_基本模块原理.assets/image-20250913110937724.png)
+![image-20250913110937724](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913110937724.png)
 
-![image-20250913110956229](./Day1_基本模块原理.assets/image-20250913110956229.png)
+![image-20250913110956229](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913110956229.png)
 
-![image-20250913111745116](./Day1_基本模块原理.assets/image-20250913111745116.png)
+![image-20250913111745116](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913111745116.png)
 
 ## Init
 
-<img src="./Day1_基本模块原理.assets/image-20250913112527591.png" alt="image-20250913112527591" style="zoom:67%;" />
+![image-20250913112527591](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913112527591.png)
 
 先初始化Led,再初始化继电器、蜂鸣器
 
