@@ -1,0 +1,22 @@
+#include <Seg.h>
+/*变量声明区*/
+unsigned char Seg_Dula[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0x00};
+unsigned char Seg_Wela[]={0xfe,0xfd,0xfb,0xef,0xdf};
+	
+
+/*数码管显示函数*/
+void Seg_Dis(unsigned char Dula,Wela)
+{
+	P0=0x00;
+	P2_6=1;
+	P2_6=0;
+	
+	
+	P0=Seg_Wela[Wela];
+	P2_7=1;
+	P2_7=0;
+	
+	P0=Seg_Dula[Dula];
+	P2_6=1;
+	P2_6=0;
+}

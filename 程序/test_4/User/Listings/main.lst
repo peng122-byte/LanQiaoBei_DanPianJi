@@ -1,0 +1,302 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              06/26/2025 18:04:21 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTEXTEND PRI
+                    -NT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*头文件声明区*/
+   2          #include <REGX52.H>
+   3          #include "Key.h"
+   4          #include "Seg.h"
+   5          
+   6          /*变量声明区*/
+   7          unsigned char Key_Val,Key_Old,Key_Down,Key_Up;
+   8          unsigned char Key_Slow_Down;
+   9          unsigned int Seg_Slow_Down;
+  10          unsigned char Seg_Pos;
+  11          unsigned char Seg_Buf[6]={1,2,3,4,5,6};
+  12          unsigned char Seg_Disp_Mode;//0-显示 1-时钟设置 2-闹钟设置
+  13          unsigned char Clock_Disp[3]={23,59,55};
+  14          unsigned int Timer_1000Ms;
+  15          unsigned char Seg_Point [6] ={0,1,0,1,0,1};
+  16          unsigned char Clock_Set [3];
+  17          unsigned char Clock_Set_Index;
+  18          unsigned int Timer_500ms;
+  19          bit Seg_Flag;
+  20          unsigned char Alarm[]={0,0,0};
+  21          unsigned char Alarm_Set[3];
+  22          bit Alarm_Flag =1;
+  23          unsigned char Led;
+  24          bit Alarm_Enable_Flag;
+  25          
+  26          /*按键处理函数*/
+  27          void Key_Proc()
+  28          {
+  29   1        if(Key_Slow_Down) return;
+  30   1        Key_Slow_Down=1;
+  31   1        Key_Val= Key_Read();
+  32   1        Key_Down= Key_Val & (Key_Old ^ Key_Val);
+  33   1        Key_Up= ~ Key_Val & (Key_Old ^ Key_Val);
+  34   1        Key_Old=Key_Val;
+  35   1        if(Key_Down !=0)
+  36   1        {
+  37   2          Alarm_Enable_Flag =0;
+  38   2        }
+  39   1        
+  40   1        switch (Key_Down)
+  41   1        {
+  42   2          case 1:
+  43   2            Seg_Disp_Mode=0;
+  44   2            Clock_Set[0]= Clock_Disp[0];
+  45   2            Clock_Set[1]= Clock_Disp[1];
+  46   2            Clock_Set[2]= Clock_Disp[2];
+  47   2            Seg_Disp_Mode=1;
+  48   2            break;
+  49   2          case 3:
+  50   2            if(Seg_Disp_Mode==1)
+  51   2            {
+  52   3              if(++Clock_Set_Index==3) Clock_Set_Index=0;
+  53   3            }
+  54   2            
+C51 COMPILER V9.59.0.0   MAIN                                                              06/26/2025 18:04:21 PAGE 2   
+
+  55   2            break;
+  56   2          case 4:
+  57   2            Alarm_Flag ^=1;
+  58   2            break;
+  59   2          case 5:
+  60   2            if(Seg_Disp_Mode==1)
+  61   2            { 
+  62   3              Clock_Set[Clock_Set_Index]++;
+  63   3              if(Clock_Set[Clock_Set_Index] == (Clock_Set_Index==0?24:60))
+  64   3              {
+  65   4                Clock_Set[Clock_Set_Index]=0;
+  66   4              }
+  67   3            }
+  68   2            if(Seg_Disp_Mode==2)
+  69   2            {
+  70   3              Alarm_Set[Clock_Set_Index]++;
+  71   3              if(Alarm_Set[Clock_Set_Index] == (Clock_Set_Index==0?24:60))
+  72   3              {
+  73   4                Alarm_Set[Clock_Set_Index]=0;
+  74   4              }
+  75   3            }
+  76   2            
+  77   2            break;
+  78   2          case 6:
+  79   2            if(Seg_Disp_Mode==1)
+  80   2            {
+  81   3              Clock_Set[Clock_Set_Index]--;
+  82   3              if(Clock_Set[Clock_Set_Index] == 255)
+  83   3              {
+  84   4                Clock_Set[Clock_Set_Index]=(Clock_Set_Index==0?23:59);
+  85   4              }
+  86   3            }
+  87   2            if(Seg_Disp_Mode==2)
+  88   2            {
+  89   3              Alarm_Set[Clock_Set_Index]--;
+  90   3              if(Alarm_Set[Clock_Set_Index] == 255)
+  91   3              {
+  92   4                Alarm_Set[Clock_Set_Index]=(Clock_Set_Index==0?23:59);
+  93   4              }
+  94   3            }
+  95   2            break;
+  96   2          case 7:
+  97   2            if(Seg_Disp_Mode==1)
+  98   2            {
+  99   3              Clock_Disp[0]= Clock_Set[0];
+ 100   3              Clock_Disp[1]= Clock_Set[1];
+ 101   3              Clock_Disp[2]= Clock_Set[2];
+ 102   3            }
+ 103   2            if(Seg_Disp_Mode==2)
+ 104   2            {
+ 105   3              Clock_Disp[0]= Alarm_Set[0];
+ 106   3              Clock_Disp[1]= Alarm_Set[1];
+ 107   3              Clock_Disp[2]= Alarm_Set[2];
+ 108   3            }
+ 109   2            Seg_Disp_Mode=0;
+ 110   2            break;
+ 111   2          case 8:
+ 112   2            Seg_Disp_Mode=0;
+ 113   2            break;
+ 114   2          case 2:
+ 115   2            Seg_Disp_Mode=0;
+ 116   2            Alarm_Set[0]= Alarm[0];
+C51 COMPILER V9.59.0.0   MAIN                                                              06/26/2025 18:04:21 PAGE 3   
+
+ 117   2            Alarm_Set[1]= Alarm[1];
+ 118   2            Alarm_Set[2]= Alarm[2];
+ 119   2            Seg_Disp_Mode=2;
+ 120   2        }
+ 121   1          
+ 122   1      }
+ 123          
+ 124          
+ 125          /*数码管处理函数*/
+ 126          void Seg_Proc()
+ 127          {
+ 128   1        if(Seg_Slow_Down) return;
+ 129   1        Seg_Slow_Down=1;
+ 130   1        switch(Seg_Disp_Mode)
+ 131   1        {
+ 132   2          case 0:
+ 133   2            Seg_Buf[0]=Clock_Disp [0]/10%10;
+ 134   2            Seg_Buf[1]=Clock_Disp [0]%10;
+ 135   2            Seg_Buf[2]=Clock_Disp [1]/10%10;
+ 136   2            Seg_Buf[3]=Clock_Disp [1]%10;
+ 137   2            Seg_Buf[4]=Clock_Disp [2]/10%10;
+ 138   2            Seg_Buf[5]=Clock_Disp [2]%10;
+ 139   2            break;
+ 140   2          case 1:
+ 141   2            Seg_Buf[0]=Clock_Set [0]/10%10;
+ 142   2            Seg_Buf[1]=Clock_Set [0]%10;
+ 143   2            Seg_Buf[2]=Clock_Set [1]/10%10;
+ 144   2            Seg_Buf[3]=Clock_Set [1]%10;
+ 145   2            Seg_Buf[4]=Clock_Set [2]/10%10;
+ 146   2            Seg_Buf[5]=Clock_Set [2]%10;
+ 147   2            /*switch(Clock_Set_Index)
+ 148   2            {
+ 149   2              case 0:
+ 150   2                Seg_Buf[0] = Seg_Flag?Clock_Set[0]/10%10:10;
+ 151   2                Seg_Buf[1]=Seg_Flag?Clock_Set [0]%10:10;
+ 152   2                break;
+ 153   2              case 1:
+ 154   2                Seg_Buf[2] = Seg_Flag?Clock_Set[1]/10%10:10;
+ 155   2                Seg_Buf[3]=Seg_Flag?Clock_Set [1]%10:10;
+ 156   2                break;
+ 157   2              case 2:
+ 158   2                Seg_Buf[4] = Seg_Flag?Clock_Set[2]/10%10:10;
+ 159   2                Seg_Buf[5]=Seg_Flag?Clock_Set [2]%10:10;
+ 160   2                break;
+ 161   2              
+ 162   2            }*/
+ 163   2            Seg_Buf[0+Clock_Set_Index*2] = Seg_Flag?Clock_Set[Clock_Set_Index]/10%10:10;
+ 164   2            Seg_Buf[1+Clock_Set_Index*2]=Seg_Flag?Clock_Set [Clock_Set_Index]%10:10;
+ 165   2            break;
+ 166   2          case 2:
+ 167   2            Seg_Buf[0]=Alarm_Set [0]/10%10;
+ 168   2            Seg_Buf[1]=Alarm_Set [0]%10;
+ 169   2            Seg_Buf[2]=Alarm_Set [1]/10%10;
+ 170   2            Seg_Buf[3]=Alarm_Set [1]%10;
+ 171   2            Seg_Buf[4]=Alarm_Set [2]/10%10;
+ 172   2            Seg_Buf[5]=Alarm_Set [2]%10;
+ 173   2            Seg_Buf[0+Clock_Set_Index*2] = Seg_Flag?Alarm_Set[Clock_Set_Index]/10%10:10;
+ 174   2            Seg_Buf[1+Clock_Set_Index*2]=Seg_Flag?Alarm_Set [Clock_Set_Index]%10:10;
+ 175   2            break;
+ 176   2          
+ 177   2        }
+ 178   1      }
+C51 COMPILER V9.59.0.0   MAIN                                                              06/26/2025 18:04:21 PAGE 4   
+
+ 179          
+ 180          
+ 181          /*其他显示函数*/
+ 182          void Led_Proc()
+ 183          {
+ 184   1        if(Alarm_Flag == 1)
+ 185   1        {
+ 186   2          
+ 187   2          if((Clock_Disp[0]==Alarm[0])&&(Clock_Disp[1] == Alarm[1])&&(Clock_Disp[2]==Alarm[2]))Alarm_Enable_Flag =
+             - 1;
+ 188   2            if(Alarm_Enable_Flag == 1)
+ 189   2            {
+ 190   3              P2_3 =0;
+ 191   3              P1= Led;
+ 192   3            }
+ 193   2          
+ 194   2          }
+ 195   1        else
+ 196   1        {
+ 197   2          P2_3 = 1;
+ 198   2          P1 = 0xff;
+ 199   2        }
+ 200   1        
+ 201   1      }
+ 202          
+ 203          /*定时器初始化函数*/
+ 204          
+ 205            void Timer0Init(void)   //1毫秒@12.000MHz
+ 206          {
+ 207   1        TMOD &= 0xF0;   //设置定时器模式
+ 208   1        TMOD |= 0x01;   //设置定时器模式
+ 209   1        TL0 = 0x18;   //设置定时初始值
+ 210   1        TH0 = 0xFC;   //设置定时初始值
+ 211   1        TF0 = 0;    //清除TF0标志
+ 212   1        TR0 = 1;    //定时器0开始计时
+ 213   1        ET0=1;
+ 214   1        EA=1;
+ 215   1      }
+ 216          
+ 217          
+ 218          /*定时器0中断服务函数*/
+ 219          void Timer0Server() interrupt 1
+ 220          {
+ 221   1        TL0 = 0x18;   //设置定时初始值
+ 222   1        TH0 = 0xFC;   //设置定时初始值
+ 223   1        if(++Key_Slow_Down==10) Key_Slow_Down=0;
+ 224   1        if(++Seg_Slow_Down==500) Seg_Slow_Down=0;
+ 225   1        if(++Seg_Pos==6) Seg_Pos=0;
+ 226   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
+ 227   1        if (++Timer_1000Ms==1000)
+ 228   1        {
+ 229   2          Timer_1000Ms = 0;
+ 230   2          Clock_Disp[2]++;
+ 231   2          if(Clock_Disp[2] == 60)
+ 232   2          {
+ 233   3            Clock_Disp[2]=0;
+ 234   3            Clock_Disp[1]++;
+ 235   3            if(Clock_Disp[1]==60)
+ 236   3            {
+ 237   4              Clock_Disp[1]=0;
+ 238   4              Clock_Disp[0]++;
+ 239   4              if(Clock_Disp[0]==24) Clock_Disp[0]=0;
+C51 COMPILER V9.59.0.0   MAIN                                                              06/26/2025 18:04:21 PAGE 5   
+
+ 240   4            }
+ 241   3          }
+ 242   2        }
+ 243   1        if(++Timer_500ms==500)
+ 244   1        {
+ 245   2          Timer_500ms=0;
+ 246   2          Seg_Flag^=1;
+ 247   2          if(Clock_Disp[0]>=12)
+ 248   2          { 
+ 249   3            Led ^= 0xf0;
+ 250   3          }
+ 251   2          else
+ 252   2          {
+ 253   3            Led ^= 0x0f;
+ 254   3          }
+ 255   2        }
+ 256   1      }
+ 257          
+ 258          /*Main*/
+ 259          void main()
+ 260          {
+ 261   1        Timer0Init();
+ 262   1        while(1)
+ 263   1        {
+ 264   2          Key_Proc();
+ 265   2          Seg_Proc();
+ 266   2          Led_Proc();
+ 267   2        }
+ 268   1      }
+ 269          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    985    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     39    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

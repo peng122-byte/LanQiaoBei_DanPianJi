@@ -1,0 +1,117 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              07/07/2025 22:27:09 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTEXTEND PRI
+                    -NT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /*头文件声明区*/
+   2          #include <STC15F2K60S2.H>
+   3          #include <Init.H>
+   4          #include <Led.H>
+   5          #include <Seg.H>
+   6          #include <Key.H>
+   7          #include <DS1302.H>
+   8          /*变量声明区*/
+   9          unsigned char Key_Val, Key_Down, Key_Up, Key_Old;
+  10          unsigned int Key_Slow_Down;
+  11          unsigned int Seg_Slow_Down;
+  12          unsigned char Seg_Buf[8]={10,10,10,10,10,10,10,10};
+  13          unsigned char Seg_Pos;
+  14          unsigned char Seg_Point[8] = {0,0,0,0,0,0,0,0};
+  15          unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};
+  16          unsigned char ucRtc[3] = {0X23,0X59,0X55};
+  17          
+  18          /*按键处理函数*/
+  19          void Key_Proc()
+  20          {
+  21   1        if(Key_Slow_Down) return;
+  22   1        Key_Slow_Down = 1;
+  23   1        
+  24   1        Key_Val = Key_Read();
+  25   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);
+  26   1        Key_Up = ~ Key_Val & (Key_Val ^ Key_Old);
+  27   1        Key_Old = Key_Val;
+  28   1        
+  29   1        
+  30   1      }
+  31          
+  32          /*信息处理函数*/
+  33          void Seg_Proc()
+  34          {
+  35   1        if(Seg_Slow_Down) return;
+  36   1        Seg_Slow_Down = 1;
+  37   1        
+  38   1        /*信息读取区域*/
+  39   1        Read_Rtc(ucRtc);
+  40   1        
+  41   1        /*数据处理区域*/
+  42   1        Seg_Buf[0] = ucRtc[0] / 16;
+  43   1        Seg_Buf[1] = ucRtc[0] % 16;
+  44   1        Seg_Buf[2] = 11;
+  45   1        Seg_Buf[3] = ucRtc[1] / 16;
+  46   1        Seg_Buf[4] = ucRtc[1] % 16;
+  47   1        Seg_Buf[5] = 11;
+  48   1        Seg_Buf[6] = ucRtc[2] / 16;
+  49   1        Seg_Buf[7] = ucRtc[2] % 16;
+  50   1      
+  51   1      }
+  52          /*其他显示函数*/
+  53          void Led_Proc()
+  54          {
+C51 COMPILER V9.59.0.0   MAIN                                                              07/07/2025 22:27:09 PAGE 2   
+
+  55   1        
+  56   1      }
+  57          /*定时器0初始化函数*/
+  58          void Timer0Init(void)   //1毫秒@12.000MHz
+  59          {
+  60   1        AUXR &= 0x7F;   //定时器时钟12T模式
+  61   1        TMOD &= 0xF0;   //设置定时器模式
+  62   1        TL0 = 0x18;   //设置定时初始值
+  63   1        TH0 = 0xFC;   //设置定时初始值
+  64   1        TF0 = 0;    //清除TF0标志
+  65   1        TR0 = 1;    //定时器0开始计时
+  66   1        ET0 = 1;
+  67   1        EA = 1;
+  68   1      }
+  69          
+  70          /*定时器0中断服务函数*/
+  71          void Timer0Server() interrupt 1
+  72          {
+  73   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;
+  74   1        if(++Seg_Slow_Down == 100) Seg_Slow_Down = 0;
+  75   1        if(++Seg_Pos == 8) Seg_Pos = 0;
+  76   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
+  77   1        Led_Disp(Seg_Pos,ucLed[Seg_Pos]);
+  78   1      }
+  79          /*Main*/
+  80          void main()
+  81          {
+  82   1        System_Init();
+  83   1        Timer0Init();
+  84   1        Set_Rtc(ucRtc);
+  85   1        while(1)
+  86   1        {
+  87   2          Key_Proc();
+  88   2          Seg_Proc();
+  89   2          Led_Proc();
+  90   2        }
+  91   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    287    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     36    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

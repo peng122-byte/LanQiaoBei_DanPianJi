@@ -1,0 +1,59 @@
+C51 COMPILER V9.59.0.0   KEY                                                               06/26/2025 18:04:21 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN .\Objects\Key.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE ..\Driver\Key.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTE
+                    -XTEND PRINT(.\Listings\Key.lst) TABS(2) OBJECT(.\Objects\Key.obj)
+
+line level    source
+
+   1          #include "Key.h"
+   2          
+   3          unsigned char Key_Read()
+   4          {
+   5   1        unsigned char temp=0;
+   6   1        P3_0=0;P3_1=1;P3_2=1;P3_3=1;
+   7   1        if(P3_4==0) temp=1;
+   8   1        if(P3_5==0) temp=2;
+   9   1        if(P3_6==0) temp=3;
+  10   1        if(P3_7==0) temp=4;
+  11   1        
+  12   1        P3_0=1;P3_1=0;P3_2=1;P3_3=1;
+  13   1        if(P3_4==0) temp=5;
+  14   1        if(P3_5==0) temp=6;
+  15   1        if(P3_6==0) temp=7;
+  16   1        if(P3_7==0) temp=8;
+  17   1        
+  18   1        P3_0=1;P3_1=1;P3_2=0;P3_3=1;
+  19   1        if(P3_4==0) temp=9;
+  20   1        if(P3_5==0) temp=10;
+  21   1        if(P3_6==0) temp=11;
+  22   1        if(P3_7==0) temp=12;
+  23   1        
+  24   1        P3_0=1;P3_1=1;P3_2=1;P3_3=0;
+  25   1        if(P3_4==0) temp=13;
+  26   1        if(P3_5==0) temp=14;
+  27   1        if(P3_6==0) temp=15;
+  28   1        if(P3_7==0) temp=16;
+  29   1        
+  30   1        return temp;
+  31   1        
+  32   1        
+  33   1        
+  34   1        
+  35   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    114    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
