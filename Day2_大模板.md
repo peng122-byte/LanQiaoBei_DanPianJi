@@ -1,6 +1,6 @@
 # 一、按键
 
-![image-20250913173805207](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/image-20250913173805207.png)
+![image-20250913173805207](https://cdn.jsdelivr.net/gh/peng122-byte/my-images@main/img/2025/09/14/image-20250913173805207.png)
 
 ```c
 unsigned char Key_Read()
