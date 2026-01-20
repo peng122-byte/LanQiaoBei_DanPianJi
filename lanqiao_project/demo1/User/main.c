@@ -45,11 +45,20 @@ void Key_Proc()
 			}
 		break;
 		case 3 : 
+			if(Seg_Disp_Mode == 1 )
+			{
+				
+				Time_Counter = Time_Buf[Time_Buf_Index];
+			}
 			Seg_Disp_Mode ^=1 ;
-			Time_Counter = Time_Buf[Time_Buf_Index];
 		break;
 		case 4 : 
-			if((++Time_Buf_Index == 3) && (Seg_Disp_Mode ==1)) Time_Buf_Index = 0;
+			if(Seg_Disp_Mode == 1) 
+			{
+				if(++Time_Buf_Index == 3) Time_Buf_Index = 0;
+			}
+			
+			
 		break;
 	}
 }
@@ -63,20 +72,21 @@ void Seg_Proc()
 	Seg_Buf[0] = Seg_Disp_Mode + 1;
 	if(Seg_Disp_Mode == 0)
 	{
-		Seg_Buf[0] = Seg_Disp_Mode + 1;
+		
 		Seg_Buf[4] = Time_Counter /10 %10;
 		Seg_Buf[5] = Time_Counter %10;
 	}else
 	{
-		Seg_Set_Buf[0] = Seg_Disp_Mode + 1;
+		Seg_Set_Buf[4] = Time_Buf[Time_Buf_Index] /10 %10;
+		Seg_Set_Buf[5] = Time_Buf[Time_Buf_Index]  %10;
 		if(Seg_Flag == 0) 
 		{
-			Seg_Set_Buf[4] = 10;
-			Seg_Set_Buf[5] = 10;
+			Seg_Buf[4] = 10;
+			Seg_Buf[5] = 10;
 		}else
 		{
-			Seg_Set_Buf[4] = Time_Counter /10 %10;
-			Seg_Set_Buf[5] = Time_Counter %10;
+			Seg_Buf[4] = Seg_Set_Buf[4] ;
+			Seg_Buf[5] = Seg_Set_Buf[5] ;
 		}
 
 		
@@ -127,13 +137,8 @@ void Timer0Server() interrupt 1
 	}
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
 	if(++Seg_Point_Pos == 6) Seg_Point_Pos = 0;//数码管小数点显示专用
-	if(Seg_Disp_Mode ==0)
-	{
-		Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Point_Pos]);
-	}else
-	{
-		Seg_Disp(Seg_Pos, Seg_Set_Buf[Seg_Pos], Seg_Point[Seg_Point_Pos]);
-	}
+	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Point_Pos]);
+	
 	
 	
 	if (Sys_Flag == 1)
