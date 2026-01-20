@@ -1,8 +1,0 @@
-".\Objects\main.obj",
-".\Objects\Init.obj",
-".\Objects\Led.obj",
-".\Objects\Seg.obj",
-".\Objects\Key.obj",
-".\Objects\DS1302.obj" 
-TO ".\Objects\test_6" 
-PRINT(".\Listings\test_6.m51") RAMSIZE(256) 

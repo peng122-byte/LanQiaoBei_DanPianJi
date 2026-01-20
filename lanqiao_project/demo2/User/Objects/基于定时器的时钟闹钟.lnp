@@ -1,0 +1,6 @@
+".\Objects\main.obj",
+".\Objects\Key.obj",
+".\Objects\Led.obj",
+".\Objects\Seg.obj" 
+TO ".\Objects\基于定时器的时钟闹钟" 
+PRINT(".\Listings\基于定时器的时钟闹钟.m51") RAMSIZE(256) 

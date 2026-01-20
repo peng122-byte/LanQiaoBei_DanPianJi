@@ -5,8 +5,8 @@ unsigned char Seg_Wela[] = {0xfe,0xfd,0xfb,0xf7,0xef,0xdf};
 
 void Seg_Disp(unsigned char wela,dula,point)
 {
-	P0 = 0x00; 
-	P2_6 = 1;//开锁存
+	P0 = 0x00; //��Ӱ
+	P2_6 = 1;
 	P2_6 = 0;
 	
 	P0 = Seg_Wela[wela];
@@ -17,7 +17,6 @@ void Seg_Disp(unsigned char wela,dula,point)
 		P0 = Seg_Dula[dula] | 0x80;
 	else
 		P0 = Seg_Dula[dula];
-	
-	P2_6 = 1;//关锁存
+	P2_6 = 1;
 	P2_6 = 0;	
 }

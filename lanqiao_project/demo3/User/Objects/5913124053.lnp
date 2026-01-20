@@ -1,4 +1,0 @@
-".\Objects\main.obj",
-".\Objects\Key.obj" 
-TO ".\Objects\5913124053" 
-PRINT(".\Listings\5913124053.m51") RAMSIZE(256) 

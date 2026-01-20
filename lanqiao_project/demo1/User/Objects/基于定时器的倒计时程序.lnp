@@ -1,0 +1,6 @@
+".\Objects\main.obj",
+".\Objects\Key.obj",
+".\Objects\Seg.obj",
+".\Objects\Led.obj" 
+TO ".\Objects\基于定时器的倒计时程序" 
+PRINT(".\Listings\基于定时器的倒计时程序.m51") RAMSIZE(256) 
