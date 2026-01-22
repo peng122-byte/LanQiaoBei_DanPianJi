@@ -1,0 +1,141 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              01/22/2026 23:26:08 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTEXTEND PRI
+                    -NT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /* 头文件声明区 */
+   2          #include <REGX52.H>//单片机寄存器专用头文件
+   3          #include <Key.h>//按键底层驱动专用头文件
+   4          #include <Seg.h>//数码管底层驱动专用头文件
+   5          #include <intrins.h>
+   6          #include <Led.h>
+   7          /* 变量声明区 */
+   8          unsigned char Key_Val,Key_Down,Key_Old,Key_Up;//按键专用变量
+   9          unsigned char Key_Slow_Down;//按键减速专用变量
+  10          unsigned char Seg_Buf[6] = {10,10,10,10,10,10};//数码管显示数据存放数组
+  11          unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
+  12          unsigned char Seg_Pos;//数码管扫描专用变量
+  13          unsigned int Seg_Slow_Down;//数码管减速专用变量
+  14          unsigned char Led_Mod;//Led模式 0-模式一：从左到右 1-模式二：从右到左 2-模式三 3-模�
+             -��四
+  15          unsigned char Led_Num;//Led编号
+  16          unsigned char Led_Enable[8] = {0,0,0,0,0,0,0,0};//Led使能数组
+  17          /* 键盘处理函数 */
+  18          void Key_Proc()
+  19          {
+  20   1        if (Key_Slow_Down) return;
+  21   1        Key_Slow_Down = 1;//按键减速程序
+  22   1        
+  23   1        Key_Val = Key_Read();//读取按下的键值
+  24   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
+  25   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
+  26   1        
+  27   1        Key_Old = Key_Val;//辅助扫描
+  28   1        
+  29   1        
+  30   1      }
+  31          
+  32          
+  33          
+  34          /* 信息处理函数 */
+  35          void Seg_Proc()
+  36          {
+  37   1        if (Seg_Slow_Down) return;
+  38   1        Seg_Slow_Down =1 ;
+  39   1        
+  40   1      }
+  41          
+  42          
+  43          
+  44          
+  45          /* 其他显示函数 */
+  46          void Led_Proc()
+  47          {
+  48   1        switch(Led_Mod)
+  49   1        {
+  50   2          case 0:
+  51   2            if(++Led_Num == 8) Led_Num = 0;
+  52   2          Led_Disp(Led_Num,Led_Enable[Led_Num]);
+  53   2          break;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/22/2026 23:26:08 PAGE 2   
+
+  54   2          case 1:
+  55   2            
+  56   2          break;
+  57   2          case 2:
+  58   2            
+  59   2          break;
+  60   2          case 3:
+  61   2            
+  62   2          break;
+  63   2            
+  64   2        }
+  65   1      }
+  66          
+  67          
+  68          
+  69          
+  70          /* 定时器0中断初始化函数 */
+  71          void Timer0Init(void)   //1毫秒@12.000MHz
+  72          {
+  73   1        TMOD &= 0xF0;   //设置定时器模式
+  74   1        TMOD |= 0x01;   //设置定时器模式
+  75   1        TL0 = 0x18;   //设置定时初始值
+  76   1        TH0 = 0xFC;   //设置定时初始值
+  77   1        TF0 = 0;    //清除TF0标志
+  78   1        TR0 = 1;    //定时器0开始计时
+  79   1        ET0 = 1;    //定时器0中断打开
+  80   1        EA = 1;     //总中断打开
+  81   1      }
+  82          
+  83          
+  84          /* 定时器0中断服务函数 */
+  85          void Timer0Server() interrupt 1
+  86          {
+  87   1        TL0 = 0x18;   //设置定时初始值
+  88   1        TH0 = 0xFC;   //设置定时初始值   
+  89   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+  90   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+  91   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+  92   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+  93   1        
+  94   1        
+  95   1        
+  96   1        
+  97   1          
+  98   1      
+  99   1        
+ 100   1      }
+ 101          
+ 102          /* Main */
+ 103          void main()
+ 104          {
+ 105   1        Timer0Init();
+ 106   1        while (1)
+ 107   1        {
+ 108   2          Key_Proc();
+ 109   2          Seg_Proc();
+ 110   2          Led_Proc();
+ 111   2        }
+ 112   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.59.0.0   MAIN                                                              01/22/2026 23:26:08 PAGE 3   
+
+   CODE SIZE        =    229    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     30    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -11,7 +11,9 @@ unsigned char Seg_Buf[6] = {10,10,10,10,10,10};//数码管显示数据存放数�
 unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
 unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int Seg_Slow_Down;//数码管减速专用变量
-
+unsigned char Led_Mod;//Led模式 0-模式一：从左到右 1-模式二：从右到左 2-模式三 3-模式四
+unsigned char Led_Num;//Led编号
+unsigned char Led_Enable[8] = {0,0,0,0,0,0,0,0};//Led使能数组
 /* 键盘处理函数 */
 void Key_Proc()
 {
@@ -43,7 +45,23 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-	
+	switch(Led_Mod)
+	{
+		case 0:
+			if(++Led_Num == 8) Led_Num = 0;
+		Led_Disp(Led_Num,Led_Enable[Led_Num]);
+		break;
+		case 1:
+			
+		break;
+		case 2:
+			
+		break;
+		case 3:
+			
+		break;
+			
+	}
 }
 
 

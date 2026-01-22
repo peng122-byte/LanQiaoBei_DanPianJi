@@ -1,0 +1,6 @@
+".\Objects\main.obj",
+".\Objects\Key.obj",
+".\Objects\Led.obj",
+".\Objects\Seg.obj" 
+TO ".\Objects\彩灯系统" 
+PRINT(".\Listings\彩灯系统.m51") RAMSIZE(256) 

@@ -192,7 +192,7 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-	if( (Hour == Alarm_Set_Buf[0]) && (Minute == Alarm_Set_Buf[1]) && (Second == Alarm_Set_Buf[2])) TimeFlag = 1;
+	if( (Hour == Alarm_Set_Buf[0]) && (Minute == Alarm_Set_Buf[1]) &&= (Second == Alarm_Set_Buf[2])) TimeFlag = 1;
 	if(TimeFlag)
 	{
 		P2_3 = 0;
