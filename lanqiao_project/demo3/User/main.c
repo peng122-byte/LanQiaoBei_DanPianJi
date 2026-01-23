@@ -12,16 +12,18 @@ unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数�
 unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int Seg_Slow_Down;//数码管减速专用变量
 unsigned char Led_Mod ;//Led模式 0-模式一：从左到右 1-模式二：从右到左 2-模式三 3-模式四
-unsigned char Led_Num,Led_Old,Led_Nums,Led_Olds;//Led编号
-unsigned char Led_Enable[8] = {0,0,0,0,0,0,0,0};//Led使能数组
+unsigned char Led_Num,Led_Old;//Led编号
+unsigned char Led_Num1,Led_Old1;
+unsigned char Led_Num2,Led_Old2,Led_Num2s,Led_Old2s;
+unsigned char Led_Num3,Led_Old3,Led_Num3s,Led_Old3s;
 unsigned int Time[9] = {400,500,600,700,800,900,1000,1100,1200};//流转时间数组
 unsigned char Time_Index;//流转时间数组索引
-bit System_Flag =1;//系统标志位
+bit System_Flag ;//系统标志位
 unsigned int Led_Set_Data [4] = {400,400,400,400};//各模式流转时间
 unsigned int System_Tick;//流转时间计数
-
-
-
+unsigned char Set_Mod;//模式变量
+bit Setting;//模式标志位
+unsigned char State[3] = {11,12,13};//S A -
 
 
 
@@ -43,13 +45,39 @@ void Key_Proc()
 			System_Flag ^= 1;
 		break;
 		case 6:
-			
+			if(System_Flag) 
+			{
+				Setting ^= 1;
+				if(++Set_Mod == 3) 
+				{
+					Set_Mod = 0;
+					Setting ^= 1;
+				}
+			}
 		break;
 		case 5:
-			
+			if(Setting == 1) 
+			{
+				if(Set_Mod == 1) 
+				{
+					
+				}else
+				{
+					
+				}
+			}
 		break;
 		case 4:
-			
+			if(Setting == 1) 
+			{
+				if(Set_Mod == 1) 
+				{
+					
+				}else
+				{
+					
+				}
+			}
 		break;
 			
 	}
@@ -62,7 +90,10 @@ void Seg_Proc()
 {
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
-	
+	if(Setting == 1)
+	{
+		
+	}
 	
 }
 
@@ -86,39 +117,35 @@ void Led_Proc()
 			if(Led_Old == 7) Led_Mod = 1;
 			break;
 			case 1:
-			if(--Led_Num == 255) Led_Num = 7;
-			Led_Disp(Led_Old,0);
-			Led_Disp(Led_Num,1);
-			Led_Old = Led_Num;
-			if(Led_Old == 0) Led_Mod = 2;
+			if(--Led_Num1 == 255) Led_Num1 = 7;
+			Led_Disp(Led_Old1,0);
+			Led_Disp(Led_Num1,1);
+			Led_Old1 = Led_Num1;
+			if(Led_Old1 == 0) Led_Mod = 2;
 
 			break;
 			case 2:
-			if(Led_Num == 4) Led_Num = 0;
-			Led_Nums = 7 - Led_Num;
-			Led_Disp(Led_Olds,0);
-			Led_Disp(Led_Old,0);
-			Led_Disp(Led_Nums,1);
-			Led_Disp(Led_Num,1);
-			Led_Old = Led_Num;
-			Led_Olds = Led_Nums;
-			Led_Num ++;
-			if(Led_Old == 3) Led_Mod = 3;
+			if(Led_Num2 == 4) Led_Num2 = 0;
+			Led_Num2s = 7 - Led_Num2;
+			Led_Disp(Led_Old2s,0);
+			Led_Disp(Led_Old2,0);
+			Led_Disp(Led_Num2s,1);
+			Led_Disp(Led_Num2,1);
+			Led_Old2 = Led_Num2;
+			Led_Old2s = Led_Num2s;
+			Led_Num2 ++;
+			if(Led_Old2 == 3) Led_Mod = 3;
 			break;
 			case 3:
-			if(--Led_Num == 255) Led_Num = 3;
-			Led_Nums = 7 - Led_Num;
-			Led_Disp(Led_Olds,0);
-			Led_Disp(Led_Old,0);
-			Led_Disp(Led_Nums,1);
-			Led_Disp(Led_Num,1);
-			Led_Old = Led_Num;
-			Led_Olds = Led_Nums;
-			if(Led_Old == 3) 
-			{
-				
-				Led_Mod = 0;
-			}
+			if(--Led_Num3 == 255) Led_Num3 = 3;
+			Led_Num3s = 7 - Led_Num3;
+			Led_Disp(Led_Old3s,0);
+			Led_Disp(Led_Old3,0);
+			Led_Disp(Led_Num3s,1);
+			Led_Disp(Led_Num3,1);
+			Led_Old3 = Led_Num3;
+			Led_Old3s = Led_Num3s;
+			if(Led_Old3 == 0) Led_Mod = 0;
 			break;
 			
 		}
