@@ -90,9 +90,13 @@ void Seg_Proc()
 {
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
-	if(Setting == 1)
+	if(Setting == 0)
 	{
-		
+		Seg_Buf[0] = State[System_Flag];
+		Seg_Buf[1] = Led_Mod +1;
+		Seg_Buf[3] = Led_Set_Data[Led_Mod]/100;
+		Seg_Buf[4] = Led_Set_Data[Led_Mod]%100 /10;
+		Seg_Buf[5] = Led_Set_Data[Led_Mod]%100 %10;
 	}
 	
 }
