@@ -10,7 +10,7 @@ void Led_Disp(unsigned char addr,enable)
 		temp &= ~(0x01 << addr);
 	if(temp != temp_old)
 	{
-		P2 = ~temp;
+		P1 = ~temp;
 		temp_old = temp;
 	}
 }

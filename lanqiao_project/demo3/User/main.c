@@ -11,9 +11,20 @@ unsigned char Seg_Buf[6] = {10,10,10,10,10,10};//数码管显示数据存放数�
 unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
 unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int Seg_Slow_Down;//数码管减速专用变量
-unsigned char Led_Mod;//Led模式 0-模式一：从左到右 1-模式二：从右到左 2-模式三 3-模式四
-unsigned char Led_Num;//Led编号
+unsigned char Led_Mod ;//Led模式 0-模式一：从左到右 1-模式二：从右到左 2-模式三 3-模式四
+unsigned char Led_Num,Led_Old,Led_Nums,Led_Olds;//Led编号
 unsigned char Led_Enable[8] = {0,0,0,0,0,0,0,0};//Led使能数组
+unsigned int Time[9] = {400,500,600,700,800,900,1000,1100,1200};//流转时间数组
+unsigned char Time_Index;//流转时间数组索引
+bit System_Flag =1;//系统标志位
+unsigned int Led_Set_Data [4] = {400,400,400,400};//各模式流转时间
+unsigned int System_Tick;//流转时间计数
+
+
+
+
+
+
 /* 键盘处理函数 */
 void Key_Proc()
 {
@@ -26,7 +37,22 @@ void Key_Proc()
 	
 	Key_Old = Key_Val;//辅助扫描
 	
-	
+	switch(Key_Down)
+	{
+		case 7:
+			System_Flag ^= 1;
+		break;
+		case 6:
+			
+		break;
+		case 5:
+			
+		break;
+		case 4:
+			
+		break;
+			
+	}
 }
 
 
@@ -37,6 +63,7 @@ void Seg_Proc()
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
 	
+	
 }
 
 
@@ -45,23 +72,59 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-	switch(Led_Mod)
+	if(System_Tick == Led_Set_Data[Led_Mod])
 	{
-		case 0:
-			if(++Led_Num == 8) Led_Num = 0;
-		Led_Disp(Led_Num,Led_Enable[Led_Num]);
-		break;
-		case 1:
+		System_Tick = 0;
+		switch(Led_Mod)
+		{
+			case 0:
+			if(Led_Num == 8) Led_Num = 0;
+			Led_Disp(Led_Old,0);
+			Led_Disp(Led_Num,1);
+			Led_Old = Led_Num;
+			Led_Num ++;
+			if(Led_Old == 7) Led_Mod = 1;
+			break;
+			case 1:
+			if(--Led_Num == 255) Led_Num = 7;
+			Led_Disp(Led_Old,0);
+			Led_Disp(Led_Num,1);
+			Led_Old = Led_Num;
+			if(Led_Old == 0) Led_Mod = 2;
+
+			break;
+			case 2:
+			if(Led_Num == 4) Led_Num = 0;
+			Led_Nums = 7 - Led_Num;
+			Led_Disp(Led_Olds,0);
+			Led_Disp(Led_Old,0);
+			Led_Disp(Led_Nums,1);
+			Led_Disp(Led_Num,1);
+			Led_Old = Led_Num;
+			Led_Olds = Led_Nums;
+			Led_Num ++;
+			if(Led_Old == 3) Led_Mod = 3;
+			break;
+			case 3:
+			if(--Led_Num == 255) Led_Num = 3;
+			Led_Nums = 7 - Led_Num;
+			Led_Disp(Led_Olds,0);
+			Led_Disp(Led_Old,0);
+			Led_Disp(Led_Nums,1);
+			Led_Disp(Led_Num,1);
+			Led_Old = Led_Num;
+			Led_Olds = Led_Nums;
+			if(Led_Old == 3) 
+			{
+				
+				Led_Mod = 0;
+			}
+			break;
 			
-		break;
-		case 2:
-			
-		break;
-		case 3:
-			
-		break;
-			
+		}
 	}
+
+	
 }
 
 
@@ -90,7 +153,11 @@ void Timer0Server() interrupt 1
 	if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
-	
+	if(System_Flag)
+	{
+		System_Tick ++;
+		
+	}
 	
 	
 	
