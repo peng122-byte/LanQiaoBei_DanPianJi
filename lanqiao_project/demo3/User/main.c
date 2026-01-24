@@ -25,7 +25,7 @@ unsigned char Set_Mod;//模式变量
 bit Setting;//模式标志位
 unsigned char State[3] = {11,12,13};//S A -
 unsigned char Mod_Set;//模式设置
-unsigned char Setting_Tick;
+unsigned int Setting_Tick;
 bit Setting_Flag;
 
 /* 键盘处理函数 */
@@ -46,13 +46,19 @@ void Key_Proc()
 			System_Flag ^= 1;
 		break;
 		case 6:
-			if(System_Flag == 0) 
+			if(System_Flag == 0)
 			{
-				Setting ^= 1;
-				if(++Set_Mod == 3) 
+				// 每次按键Set_Mod递增: 0->1->2->3(循环到0)
+				if(++Set_Mod == 3)
 				{
+					// 第3次按键:退出设置模式
 					Set_Mod = 0;
-					Setting ^= 1;
+					Setting = 0;
+				}
+				else
+				{
+					// 第1次按键(Set_Mod=1)或第2次按键(Set_Mod=2):进入/保持设置模式
+					Setting = 1;
 				}
 			}
 		break;
@@ -91,33 +97,34 @@ void Seg_Proc()
 {
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
+	// 正常显示模式
 	if(Setting == 0)
 	{
-		
+
 		Seg_Buf[0] = State[System_Flag];
 		Seg_Buf[1] = Led_Mod +1;
 		Seg_Buf[3] = Led_Set_Data[Led_Mod]/100;
 		Seg_Buf[4] = Led_Set_Data[Led_Mod]%100 /10;
 		Seg_Buf[5] = Led_Set_Data[Led_Mod]%100 %10;
-	}else
+	}else  // 设置模式(带闪烁)
 	{
 		// 始终先设置显示内容
-		Seg_Buf[0] = State[2];
+		Seg_Buf[0] = State[2];  // 显示"-"符号
 		Mod_Set = Led_Mod;
 		Seg_Buf[1] = Mod_Set + 1;
 		Seg_Buf[3] = Led_Set_Data[Mod_Set]/100;
 		Seg_Buf[4] = Led_Set_Data[Mod_Set]%100 /10;
 		Seg_Buf[5] = Led_Set_Data[Mod_Set]%100 %10;
 
-		// 根据闪烁标志清除对应位置
+		// 根据闪烁标志清除对应位置(实现闪烁效果)
 		if(Setting_Flag == 1)
 		{
-			if(Set_Mod == 1)
+			if(Set_Mod == 1)  // 第1次按键6:前两位闪烁
 			{
 				Seg_Buf[0] = 10;
 				Seg_Buf[1] = 10;
 			}
-			else if(Set_Mod == 2)
+			else if(Set_Mod == 2)  // 第2次按键6:后三位闪烁
 			{
 				Seg_Buf[3] = 10;
 				Seg_Buf[4] = 10;
@@ -126,8 +133,8 @@ void Seg_Proc()
 		}
 
 	}
-	
-	
+
+
 }
 
 
@@ -217,12 +224,13 @@ void Timer0Server() interrupt 1
 	{
 		System_Tick ++;
 	}
-	if(Setting)
+	if(Setting)  // 设置模式下控制闪烁
 	{
+		// 每400ms翻转一次闪烁标志(显示/隐藏切换)
 		if(++Setting_Tick == 400)
 		{
 			Setting_Tick = 0;
-			Setting_Flag ^= 1;
+			Setting_Flag ^= 1;  // 0->1->0->1循环,控制Seg_Proc中的显示/清除
 		}
 	}
 	
