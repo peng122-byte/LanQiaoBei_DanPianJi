@@ -90,10 +90,11 @@ void Key_Proc()
 			{
 				if(Set_Mod == 1) 
 				{
-					
+					if(--Mod_Set == 255) Mod_Set = 3;
 				}else if(Set_Mod == 2)
 				{
-					
+					if(--Time_Index == 255) Time_Index = 8;
+					Led_Set_Data [Mod_Set] = Time[Time_Index];
 				}
 			}
 		break;
