@@ -26,21 +26,21 @@ unsigned char Set_Mod;//模式变量
 bit Setting;//模式标志位
 unsigned char State[3] = {11,12,13};//S A -
 unsigned char Mod_Set;//模式设置
-unsigned int Setting_Tick;
-bit Setting_Flag;
-
+unsigned int Setting_Tick;//设置模式时间计数
+bit Setting_Flag;//设置模式闪烁
+bit DA_Disp;
+unsigned char Led_Sum1;
+unsigned char Led_Sum2;
 /* 键盘处理函数 */
 void Key_Proc()
 {
 	if (Key_Slow_Down) return;
 	Key_Slow_Down = 1;//按键减速程序
-	
 	Key_Val = Key_Read();//读取按下的键值
 	Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
 	Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
-	
 	Key_Old = Key_Val;//辅助扫描
-	
+	if((Key_Old == 4) && (System_Flag == 0)) DA_Disp ^=1;//长按4至数据显示界面
 	switch(Key_Down)
 	{
 		case 7:
@@ -63,7 +63,6 @@ void Key_Proc()
 					// 第1次按键(Set_Mod=1)
 					Setting = 1;
 					Mod_Set = Led_Mod;
-					
 				}
 				else if(Set_Mod == 2)//第2次按键(Set_Mod=2)
 				{
@@ -100,9 +99,6 @@ void Key_Proc()
 		break;
 	}
 }
-
-
-
 /* 信息处理函数 */
 void Seg_Proc()
 {
@@ -158,13 +154,38 @@ void Seg_Proc()
 		}
 
 	}
-
-
+	//数据显示界面
+	if(DA_Disp == 1)
+	{
+		switch(Led_Mod)
+		{
+			case 0:
+				Led_Sum2 = Led_Num;
+				Led_Sum1 = 0;
+			break;
+			case 1:
+				Led_Sum2 = Led_Num1;
+				Led_Sum1 = 0;
+			break;
+			case 2:
+				Led_Sum2 = Led_Num2;
+				Led_Sum1 = Led_Num2s;
+			break;
+			case 3:
+				Led_Sum2 = Led_Num3;
+				Led_Sum1 = Led_Num3s;
+			break;
+		}
+		Seg_Buf[0] = 0;
+		Seg_Point[0] = 1;
+		Seg_Buf[1] = 12;
+		Seg_Point[1] = 1;
+		Seg_Buf[2] = State[2];  // 显示"-"符号
+		Seg_Buf[3] = Mod_Set + 1;
+		Seg_Buf[4] = Led_Sum1 ;
+		Seg_Buf[5] = Led_Sum2 ;
+	}
 }
-
-
-
-
 /* 其他显示函数 */
 void Led_Proc()
 {
@@ -187,7 +208,6 @@ void Led_Proc()
 			Led_Disp(Led_Num1,1);
 			Led_Old1 = Led_Num1;
 			if(Led_Old1 == 0) Led_Mod = 2;
-
 			break;
 			case 2:
 			if(Led_Num2 == 4) Led_Num2 = 0;
@@ -212,16 +232,9 @@ void Led_Proc()
 			Led_Old3s = Led_Num3s;
 			if(Led_Old3 == 0) Led_Mod = 0;
 			break;
-			
 		}
 	}
-
-	
 }
-
-
-
-
 /* 定时器0中断初始化函数 */
 void Timer0Init(void)		//1毫秒@12.000MHz
 {
@@ -234,8 +247,6 @@ void Timer0Init(void)		//1毫秒@12.000MHz
 	ET0 = 1;    //定时器0中断打开
 	EA = 1;     //总中断打开
 }
-
-
 /* 定时器0中断服务函数 */
 void Timer0Server() interrupt 1
 {
@@ -258,14 +269,7 @@ void Timer0Server() interrupt 1
 			Setting_Flag ^= 1;  // 0->1->0->1循环,控制Seg_Proc中的显示/清除
 		}
 	}
-	
-	
-	
-		
-
-	
 }
-
 /* Main */
 void main()
 {

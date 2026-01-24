@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 20:37:55 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 21:06:39 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -37,21 +37,21 @@ line level    source
   26          bit Setting;//模式标志位
   27          unsigned char State[3] = {11,12,13};//S A -
   28          unsigned char Mod_Set;//模式设置
-  29          unsigned int Setting_Tick;
-  30          bit Setting_Flag;
-  31          
-  32          /* 键盘处理函数 */
-  33          void Key_Proc()
-  34          {
-  35   1        if (Key_Slow_Down) return;
-  36   1        Key_Slow_Down = 1;//按键减速程序
-  37   1        
-  38   1        Key_Val = Key_Read();//读取按下的键值
-  39   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
-  40   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
-  41   1        
+  29          unsigned int Setting_Tick;//设置模式时间计数
+  30          bit Setting_Flag;//设置模式闪烁
+  31          bit DA_Disp;
+  32          unsigned char Led_Sum1;
+  33          unsigned char Led_Sum2;
+  34          /* 键盘处理函数 */
+  35          void Key_Proc()
+  36          {
+  37   1        if (Key_Slow_Down) return;
+  38   1        Key_Slow_Down = 1;//按键减速程序
+  39   1        Key_Val = Key_Read();//读取按下的键值
+  40   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
+  41   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
   42   1        Key_Old = Key_Val;//辅助扫描
-  43   1        
+  43   1        if((Key_Old == 4) && (System_Flag == 0)) DA_Disp ^=1;//长按4至数据显示界面
   44   1        switch(Key_Down)
   45   1        {
   46   2          case 7:
@@ -62,7 +62,7 @@ line level    source
   51   2            {
   52   3              // 每次按键Set_Mod递增: 0->1->2->3(循环到0)
   53   3              if(++Set_Mod == 3)
-C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 20:37:55 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 21:06:39 PAGE 2   
 
   54   3              {
   55   4                // 第3次按键:退出设置模式
@@ -76,236 +76,240 @@ line level    source
   63   4                // 第1次按键(Set_Mod=1)
   64   4                Setting = 1;
   65   4                Mod_Set = Led_Mod;
-  66   4                
-  67   4              }
-  68   3              else if(Set_Mod == 2)//第2次按键(Set_Mod=2)
-  69   3              {
-  70   4                Setting = 1;
-  71   4                Led_Set_Data [Mod_Set] = Led_Data [Mod_Set];
-  72   4              }
-  73   3            }
-  74   2          break;
-  75   2          case 5:
-  76   2            if(Setting == 1) 
-  77   2            {
-  78   3              if(Set_Mod == 1) 
-  79   3              {
-  80   4                if(++Mod_Set == 4) Mod_Set = 0;
-  81   4              }else if(Set_Mod == 2)
-  82   3              {
-  83   4                if(++Time_Index == 9) Time_Index = 0;
-  84   4                Led_Set_Data [Mod_Set] = Time[Time_Index];
-  85   4              }
-  86   3            }
-  87   2          break;
-  88   2          case 4:
-  89   2            if(Setting == 1) 
-  90   2            {
-  91   3              if(Set_Mod == 1) 
-  92   3              {
-  93   4                if(--Mod_Set == 255) Mod_Set = 3;
-  94   4              }else if(Set_Mod == 2)
-  95   3              {
-  96   4                if(--Time_Index == 255) Time_Index = 8;
-  97   4                Led_Set_Data [Mod_Set] = Time[Time_Index];
-  98   4              }
-  99   3            }
- 100   2          break;
- 101   2        }
- 102   1      }
- 103          
- 104          
- 105          
- 106          /* 信息处理函数 */
- 107          void Seg_Proc()
- 108          {
- 109   1        if (Seg_Slow_Down) return;
- 110   1        Seg_Slow_Down =1 ;
- 111   1        // 正常显示模式
- 112   1        if(Setting == 0)
- 113   1        {
- 114   2      
- 115   2          Seg_Buf[0] = State[System_Flag];
-C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 20:37:55 PAGE 3   
+  66   4              }
+  67   3              else if(Set_Mod == 2)//第2次按键(Set_Mod=2)
+  68   3              {
+  69   4                Setting = 1;
+  70   4                Led_Set_Data [Mod_Set] = Led_Data [Mod_Set];
+  71   4              }
+  72   3            }
+  73   2          break;
+  74   2          case 5:
+  75   2            if(Setting == 1) 
+  76   2            {
+  77   3              if(Set_Mod == 1) 
+  78   3              {
+  79   4                if(++Mod_Set == 4) Mod_Set = 0;
+  80   4              }else if(Set_Mod == 2)
+  81   3              {
+  82   4                if(++Time_Index == 9) Time_Index = 0;
+  83   4                Led_Set_Data [Mod_Set] = Time[Time_Index];
+  84   4              }
+  85   3            }
+  86   2          break;
+  87   2          case 4:
+  88   2            if(Setting == 1) 
+  89   2            {
+  90   3              if(Set_Mod == 1) 
+  91   3              {
+  92   4                if(--Mod_Set == 255) Mod_Set = 3;
+  93   4              }else if(Set_Mod == 2)
+  94   3              {
+  95   4                if(--Time_Index == 255) Time_Index = 8;
+  96   4                Led_Set_Data [Mod_Set] = Time[Time_Index];
+  97   4              }
+  98   3            }
+  99   2          break;
+ 100   2        }
+ 101   1      }
+ 102          /* 信息处理函数 */
+ 103          void Seg_Proc()
+ 104          {
+ 105   1        if (Seg_Slow_Down) return;
+ 106   1        Seg_Slow_Down =1 ;
+ 107   1        // 正常显示模式
+ 108   1        if(Setting == 0)
+ 109   1        {
+ 110   2      
+ 111   2          Seg_Buf[0] = State[System_Flag];
+ 112   2          Seg_Buf[1] = Led_Mod +1;
+ 113   2          if((Led_Data[Led_Mod]/1000) == 0)
+ 114   2          {
+ 115   3            Seg_Buf[2] = 10;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 21:06:39 PAGE 3   
 
- 116   2          Seg_Buf[1] = Led_Mod +1;
- 117   2          if((Led_Data[Led_Mod]/1000) == 0)
- 118   2          {
- 119   3            Seg_Buf[2] = 10;
- 120   3          }else
- 121   2          {
- 122   3            Seg_Buf[2] = Led_Data[Led_Mod]/1000;
- 123   3          }
- 124   2          Seg_Buf[3] = Led_Data[Led_Mod]/100 %10;
- 125   2          Seg_Buf[4] = Led_Data[Led_Mod]%100 /10;
- 126   2          Seg_Buf[5] = Led_Data[Led_Mod] %10;
- 127   2        }else  // 设置模式(带闪烁)
- 128   1        {
- 129   2          // 始终先设置显示内容
- 130   2          Seg_Buf[0] = State[2];  // 显示"-"符号
- 131   2          Seg_Buf[1] = Mod_Set + 1;
- 132   2          if((Led_Set_Data[Mod_Set]/1000) == 0)
- 133   2          {
- 134   3            Seg_Buf[2] = 10;
- 135   3          }else
- 136   2          {
- 137   3            Seg_Buf[2] = Led_Set_Data[Mod_Set]/1000;
- 138   3          }
- 139   2          Seg_Buf[3] = Led_Set_Data[Mod_Set]/100 %10;
- 140   2          Seg_Buf[4] = Led_Set_Data[Mod_Set]%100 /10;
- 141   2          Seg_Buf[5] = Led_Set_Data[Mod_Set]%10;
- 142   2      
- 143   2          // 根据闪烁标志清除对应位置(实现闪烁效果)
- 144   2          if(Setting_Flag == 1)
- 145   2          {
- 146   3            if(Set_Mod == 1)  // 第1次按键6:前两位闪烁
- 147   3            {
- 148   4              Seg_Buf[0] = 10;
- 149   4              Seg_Buf[1] = 10;
- 150   4            }
- 151   3            else if(Set_Mod == 2)  // 第2次按键6:后三位闪烁
- 152   3            {
- 153   4              Seg_Buf[2] = 10;
- 154   4              Seg_Buf[3] = 10;
- 155   4              Seg_Buf[4] = 10;
- 156   4              Seg_Buf[5] = 10;
- 157   4            }
- 158   3          }
- 159   2      
- 160   2        }
- 161   1      
- 162   1      
- 163   1      }
- 164          
- 165          
- 166          
- 167          
- 168          /* 其他显示函数 */
- 169          void Led_Proc()
- 170          {
- 171   1        if(System_Tick == Led_Data[Led_Mod])
- 172   1        {
- 173   2          System_Tick = 0;
- 174   2          switch(Led_Mod)
- 175   2          {
- 176   3            case 0:
- 177   3            if(Led_Num == 8) Led_Num = 0;
-C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 20:37:55 PAGE 4   
+ 116   3          }else
+ 117   2          {
+ 118   3            Seg_Buf[2] = Led_Data[Led_Mod]/1000;
+ 119   3          }
+ 120   2          Seg_Buf[3] = Led_Data[Led_Mod]/100 %10;
+ 121   2          Seg_Buf[4] = Led_Data[Led_Mod]%100 /10;
+ 122   2          Seg_Buf[5] = Led_Data[Led_Mod] %10;
+ 123   2        }else  // 设置模式(带闪烁)
+ 124   1        {
+ 125   2          // 始终先设置显示内容
+ 126   2          Seg_Buf[0] = State[2];  // 显示"-"符号
+ 127   2          Seg_Buf[1] = Mod_Set + 1;
+ 128   2          if((Led_Set_Data[Mod_Set]/1000) == 0)
+ 129   2          {
+ 130   3            Seg_Buf[2] = 10;
+ 131   3          }else
+ 132   2          {
+ 133   3            Seg_Buf[2] = Led_Set_Data[Mod_Set]/1000;
+ 134   3          }
+ 135   2          Seg_Buf[3] = Led_Set_Data[Mod_Set]/100 %10;
+ 136   2          Seg_Buf[4] = Led_Set_Data[Mod_Set]%100 /10;
+ 137   2          Seg_Buf[5] = Led_Set_Data[Mod_Set]%10;
+ 138   2      
+ 139   2          // 根据闪烁标志清除对应位置(实现闪烁效果)
+ 140   2          if(Setting_Flag == 1)
+ 141   2          {
+ 142   3            if(Set_Mod == 1)  // 第1次按键6:前两位闪烁
+ 143   3            {
+ 144   4              Seg_Buf[0] = 10;
+ 145   4              Seg_Buf[1] = 10;
+ 146   4            }
+ 147   3            else if(Set_Mod == 2)  // 第2次按键6:后三位闪烁
+ 148   3            {
+ 149   4              Seg_Buf[2] = 10;
+ 150   4              Seg_Buf[3] = 10;
+ 151   4              Seg_Buf[4] = 10;
+ 152   4              Seg_Buf[5] = 10;
+ 153   4            }
+ 154   3          }
+ 155   2      
+ 156   2        }
+ 157   1        //数据显示界面
+ 158   1        if(DA_Disp == 1)
+ 159   1        {
+ 160   2          switch(Led_Mod)
+ 161   2          {
+ 162   3            case 0:
+ 163   3              Led_Sum2 = Led_Num;
+ 164   3              Led_Sum1 = 0;
+ 165   3            break;
+ 166   3            case 1:
+ 167   3              Led_Sum2 = Led_Num1;
+ 168   3              Led_Sum1 = 0;
+ 169   3            break;
+ 170   3            case 2:
+ 171   3              Led_Sum2 = Led_Num2;
+ 172   3              Led_Sum1 = Led_Num2s;
+ 173   3            break;
+ 174   3            case 3:
+ 175   3              Led_Sum2 = Led_Num3;
+ 176   3              Led_Sum1 = Led_Num3s;
+ 177   3            break;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 21:06:39 PAGE 4   
 
- 178   3            Led_Disp(Led_Old,0);
- 179   3            Led_Disp(Led_Num,1);
- 180   3            Led_Old = Led_Num;
- 181   3            Led_Num ++;
- 182   3            if(Led_Old == 7) Led_Mod = 1;
- 183   3            break;
- 184   3            case 1:
- 185   3            if(--Led_Num1 == 255) Led_Num1 = 7;
- 186   3            Led_Disp(Led_Old1,0);
- 187   3            Led_Disp(Led_Num1,1);
- 188   3            Led_Old1 = Led_Num1;
- 189   3            if(Led_Old1 == 0) Led_Mod = 2;
- 190   3      
- 191   3            break;
- 192   3            case 2:
- 193   3            if(Led_Num2 == 4) Led_Num2 = 0;
- 194   3            Led_Num2s = 7 - Led_Num2;
- 195   3            Led_Disp(Led_Old2s,0);
- 196   3            Led_Disp(Led_Old2,0);
- 197   3            Led_Disp(Led_Num2s,1);
- 198   3            Led_Disp(Led_Num2,1);
- 199   3            Led_Old2 = Led_Num2;
- 200   3            Led_Old2s = Led_Num2s;
- 201   3            Led_Num2 ++;
- 202   3            if(Led_Old2 == 3) Led_Mod = 3;
- 203   3            break;
- 204   3            case 3:
- 205   3            if(--Led_Num3 == 255) Led_Num3 = 3;
- 206   3            Led_Num3s = 7 - Led_Num3;
- 207   3            Led_Disp(Led_Old3s,0);
- 208   3            Led_Disp(Led_Old3,0);
- 209   3            Led_Disp(Led_Num3s,1);
- 210   3            Led_Disp(Led_Num3,1);
- 211   3            Led_Old3 = Led_Num3;
- 212   3            Led_Old3s = Led_Num3s;
- 213   3            if(Led_Old3 == 0) Led_Mod = 0;
- 214   3            break;
- 215   3            
- 216   3          }
- 217   2        }
- 218   1      
- 219   1        
- 220   1      }
- 221          
- 222          
- 223          
- 224          
- 225          /* 定时器0中断初始化函数 */
- 226          void Timer0Init(void)   //1毫秒@12.000MHz
- 227          {
- 228   1        TMOD &= 0xF0;   //设置定时器模式
- 229   1        TMOD |= 0x01;   //设置定时器模式
- 230   1        TL0 = 0x18;   //设置定时初始值
- 231   1        TH0 = 0xFC;   //设置定时初始值
- 232   1        TF0 = 0;    //清除TF0标志
- 233   1        TR0 = 1;    //定时器0开始计时
- 234   1        ET0 = 1;    //定时器0中断打开
- 235   1        EA = 1;     //总中断打开
- 236   1      }
- 237          
- 238          
- 239          /* 定时器0中断服务函数 */
-C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 20:37:55 PAGE 5   
+ 178   3          }
+ 179   2          Seg_Buf[0] = 0;
+ 180   2          Seg_Point[0] = 1;
+ 181   2          Seg_Buf[1] = 12;
+ 182   2          Seg_Point[1] = 1;
+ 183   2          Seg_Buf[2] = State[2];  // 显示"-"符号
+ 184   2          Seg_Buf[3] = Mod_Set + 1;
+ 185   2          Seg_Buf[4] = Led_Sum1 ;
+ 186   2          Seg_Buf[5] = Led_Sum2 ;
+ 187   2        }
+ 188   1      }
+ 189          /* 其他显示函数 */
+ 190          void Led_Proc()
+ 191          {
+ 192   1        if(System_Tick == Led_Data[Led_Mod])
+ 193   1        {
+ 194   2          System_Tick = 0;
+ 195   2          switch(Led_Mod)
+ 196   2          {
+ 197   3            case 0:
+ 198   3            if(Led_Num == 8) Led_Num = 0;
+ 199   3            Led_Disp(Led_Old,0);
+ 200   3            Led_Disp(Led_Num,1);
+ 201   3            Led_Old = Led_Num;
+ 202   3            Led_Num ++;
+ 203   3            if(Led_Old == 7) Led_Mod = 1;
+ 204   3            break;
+ 205   3            case 1:
+ 206   3            if(--Led_Num1 == 255) Led_Num1 = 7;
+ 207   3            Led_Disp(Led_Old1,0);
+ 208   3            Led_Disp(Led_Num1,1);
+ 209   3            Led_Old1 = Led_Num1;
+ 210   3            if(Led_Old1 == 0) Led_Mod = 2;
+ 211   3            break;
+ 212   3            case 2:
+ 213   3            if(Led_Num2 == 4) Led_Num2 = 0;
+ 214   3            Led_Num2s = 7 - Led_Num2;
+ 215   3            Led_Disp(Led_Old2s,0);
+ 216   3            Led_Disp(Led_Old2,0);
+ 217   3            Led_Disp(Led_Num2s,1);
+ 218   3            Led_Disp(Led_Num2,1);
+ 219   3            Led_Old2 = Led_Num2;
+ 220   3            Led_Old2s = Led_Num2s;
+ 221   3            Led_Num2 ++;
+ 222   3            if(Led_Old2 == 3) Led_Mod = 3;
+ 223   3            break;
+ 224   3            case 3:
+ 225   3            if(--Led_Num3 == 255) Led_Num3 = 3;
+ 226   3            Led_Num3s = 7 - Led_Num3;
+ 227   3            Led_Disp(Led_Old3s,0);
+ 228   3            Led_Disp(Led_Old3,0);
+ 229   3            Led_Disp(Led_Num3s,1);
+ 230   3            Led_Disp(Led_Num3,1);
+ 231   3            Led_Old3 = Led_Num3;
+ 232   3            Led_Old3s = Led_Num3s;
+ 233   3            if(Led_Old3 == 0) Led_Mod = 0;
+ 234   3            break;
+ 235   3          }
+ 236   2        }
+ 237   1      }
+ 238          /* 定时器0中断初始化函数 */
+ 239          void Timer0Init(void)   //1毫秒@12.000MHz
+C51 COMPILER V9.59.0.0   MAIN                                                              01/24/2026 21:06:39 PAGE 5   
 
- 240          void Timer0Server() interrupt 1
- 241          {
- 242   1        TL0 = 0x18;   //设置定时初始值
- 243   1        TH0 = 0xFC;   //设置定时初始值   
- 244   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 245   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 246   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
- 247   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
- 248   1        if(System_Flag)
- 249   1        {
- 250   2          System_Tick ++;
- 251   2        }
- 252   1        if(Setting)  // 设置模式下控制闪烁
- 253   1        {
- 254   2          // 每400ms翻转一次闪烁标志(显示/隐藏切换)
- 255   2          if(++Setting_Tick == 400)
- 256   2          {
- 257   3            Setting_Tick = 0;
- 258   3            Setting_Flag ^= 1;  // 0->1->0->1循环,控制Seg_Proc中的显示/清除
- 259   3          }
- 260   2        }
- 261   1        
- 262   1        
- 263   1        
- 264   1          
- 265   1      
- 266   1        
- 267   1      }
- 268          
- 269          /* Main */
- 270          void main()
- 271          {
- 272   1        Timer0Init();
- 273   1        while (1)
- 274   1        {
- 275   2          Key_Proc();
- 276   2          Seg_Proc();
- 277   2          Led_Proc();
- 278   2        }
- 279   1      }
+ 240          {
+ 241   1        TMOD &= 0xF0;   //设置定时器模式
+ 242   1        TMOD |= 0x01;   //设置定时器模式
+ 243   1        TL0 = 0x18;   //设置定时初始值
+ 244   1        TH0 = 0xFC;   //设置定时初始值
+ 245   1        TF0 = 0;    //清除TF0标志
+ 246   1        TR0 = 1;    //定时器0开始计时
+ 247   1        ET0 = 1;    //定时器0中断打开
+ 248   1        EA = 1;     //总中断打开
+ 249   1      }
+ 250          /* 定时器0中断服务函数 */
+ 251          void Timer0Server() interrupt 1
+ 252          {
+ 253   1        TL0 = 0x18;   //设置定时初始值
+ 254   1        TH0 = 0xFC;   //设置定时初始值   
+ 255   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 256   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 257   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+ 258   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+ 259   1        if(System_Flag)
+ 260   1        {
+ 261   2          System_Tick ++;
+ 262   2        }
+ 263   1        if(Setting)  // 设置模式下控制闪烁
+ 264   1        {
+ 265   2          // 每400ms翻转一次闪烁标志(显示/隐藏切换)
+ 266   2          if(++Setting_Tick == 400)
+ 267   2          {
+ 268   3            Setting_Tick = 0;
+ 269   3            Setting_Flag ^= 1;  // 0->1->0->1循环,控制Seg_Proc中的显示/清除
+ 270   3          }
+ 271   2        }
+ 272   1      }
+ 273          /* Main */
+ 274          void main()
+ 275          {
+ 276   1        Timer0Init();
+ 277   1        while (1)
+ 278   1        {
+ 279   2          Key_Proc();
+ 280   2          Seg_Proc();
+ 281   2          Led_Proc();
+ 282   2        }
+ 283   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1027    ----
+   CODE SIZE        =   1118    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     77    ----
+   DATA SIZE        =     79    ----
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =      3    ----
+   BIT SIZE         =      4    ----
 END OF MODULE INFORMATION.
 
 
