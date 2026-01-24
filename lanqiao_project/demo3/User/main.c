@@ -20,6 +20,7 @@ unsigned int Time[9] = {400,500,600,700,800,900,1000,1100,1200};//流转时间�
 unsigned char Time_Index;//流转时间数组索引
 bit System_Flag ;//系统标志位
 unsigned int Led_Set_Data [4] = {400,400,400,400};//各模式流转时间
+unsigned int Led_Data [4] = {400,400,400,400};//各模式流转时间
 unsigned int System_Tick;//流转时间计数
 unsigned char Set_Mod;//模式变量
 bit Setting;//模式标志位
@@ -54,11 +55,20 @@ void Key_Proc()
 					// 第3次按键:退出设置模式
 					Set_Mod = 0;
 					Setting = 0;
+					Led_Mod = Mod_Set;
+					Led_Data [Led_Mod] = Time[Time_Index];
 				}
-				else
+				else if(Set_Mod == 1)
 				{
-					// 第1次按键(Set_Mod=1)或第2次按键(Set_Mod=2):进入/保持设置模式
+					// 第1次按键(Set_Mod=1)
 					Setting = 1;
+					Mod_Set = Led_Mod;
+					
+				}
+				else if(Set_Mod == 2)//第2次按键(Set_Mod=2)
+				{
+					Setting = 1;
+					Led_Set_Data [Mod_Set] = Led_Data [Mod_Set];
 				}
 			}
 		break;
@@ -67,10 +77,11 @@ void Key_Proc()
 			{
 				if(Set_Mod == 1) 
 				{
-					
-				}else
+					if(++Mod_Set == 4) Mod_Set = 0;
+				}else if(Set_Mod == 2)
 				{
-					
+					if(++Time_Index == 9) Time_Index = 0;
+					Led_Set_Data [Mod_Set] = Time[Time_Index];
 				}
 			}
 		break;
@@ -80,13 +91,12 @@ void Key_Proc()
 				if(Set_Mod == 1) 
 				{
 					
-				}else
+				}else if(Set_Mod == 2)
 				{
 					
 				}
 			}
 		break;
-			
 	}
 }
 
@@ -103,18 +113,31 @@ void Seg_Proc()
 
 		Seg_Buf[0] = State[System_Flag];
 		Seg_Buf[1] = Led_Mod +1;
-		Seg_Buf[3] = Led_Set_Data[Led_Mod]/100;
-		Seg_Buf[4] = Led_Set_Data[Led_Mod]%100 /10;
-		Seg_Buf[5] = Led_Set_Data[Led_Mod]%100 %10;
+		if((Led_Data[Led_Mod]/1000) == 0)
+		{
+			Seg_Buf[2] = 10;
+		}else
+		{
+			Seg_Buf[2] = Led_Data[Led_Mod]/1000;
+		}
+		Seg_Buf[3] = Led_Data[Led_Mod]/100 %10;
+		Seg_Buf[4] = Led_Data[Led_Mod]%100 /10;
+		Seg_Buf[5] = Led_Data[Led_Mod] %10;
 	}else  // 设置模式(带闪烁)
 	{
 		// 始终先设置显示内容
 		Seg_Buf[0] = State[2];  // 显示"-"符号
-		Mod_Set = Led_Mod;
 		Seg_Buf[1] = Mod_Set + 1;
-		Seg_Buf[3] = Led_Set_Data[Mod_Set]/100;
+		if((Led_Set_Data[Mod_Set]/1000) == 0)
+		{
+			Seg_Buf[2] = 10;
+		}else
+		{
+			Seg_Buf[2] = Led_Set_Data[Mod_Set]/1000;
+		}
+		Seg_Buf[3] = Led_Set_Data[Mod_Set]/100 %10;
 		Seg_Buf[4] = Led_Set_Data[Mod_Set]%100 /10;
-		Seg_Buf[5] = Led_Set_Data[Mod_Set]%100 %10;
+		Seg_Buf[5] = Led_Set_Data[Mod_Set]%10;
 
 		// 根据闪烁标志清除对应位置(实现闪烁效果)
 		if(Setting_Flag == 1)
@@ -126,6 +149,7 @@ void Seg_Proc()
 			}
 			else if(Set_Mod == 2)  // 第2次按键6:后三位闪烁
 			{
+				Seg_Buf[2] = 10;
 				Seg_Buf[3] = 10;
 				Seg_Buf[4] = 10;
 				Seg_Buf[5] = 10;
@@ -143,7 +167,7 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-	if(System_Tick == Led_Set_Data[Led_Mod])
+	if(System_Tick == Led_Data[Led_Mod])
 	{
 		System_Tick = 0;
 		switch(Led_Mod)
