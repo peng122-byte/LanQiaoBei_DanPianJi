@@ -7,6 +7,8 @@
 /* 变量声明区 */
 unsigned char Key_Val,Key_Down,Key_Old,Key_Up;//按键专用变量
 unsigned char Key_Slow_Down;//按键减速专用变量
+unsigned int Key4_Press_Time;//按键4长按计数器
+bit Key4_Long_Pressed;//按键4长按标志,防止重复触发
 unsigned char Seg_Buf[6] = {10,10,10,10,10,10};//数码管显示数据存放数组
 unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
 unsigned char Seg_Pos;//数码管扫描专用变量
@@ -40,7 +42,22 @@ void Key_Proc()
 	Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
 	Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
 	Key_Old = Key_Val;//辅助扫描
-	if((Key_Old == 4) && (System_Flag == 0)) DA_Disp ^=1;//长按4至数据显示界面
+
+	//按键4长按检测(1秒=100次扫描)
+	if((Key_Old == 4) && (System_Flag == 0))
+	{
+		if(++Key4_Press_Time >= 100 && Key4_Long_Pressed == 0)
+		{
+			DA_Disp ^= 1;//切换到数据显示界面
+			Key4_Long_Pressed = 1;//防止重复触发
+		}
+	}
+	else
+	{
+		Key4_Press_Time = 0;//松开或其他情况清零计数
+		Key4_Long_Pressed = 0;//清除长按标志
+	}
+
 	switch(Key_Down)
 	{
 		case 7:
