@@ -24,8 +24,9 @@ unsigned int System_Tick;//流转时间计数
 unsigned char Set_Mod;//模式变量
 bit Setting;//模式标志位
 unsigned char State[3] = {11,12,13};//S A -
-
-
+unsigned char Mod_Set;//模式设置
+unsigned char Setting_Tick;
+bit Setting_Flag;
 
 /* 键盘处理函数 */
 void Key_Proc()
@@ -45,7 +46,7 @@ void Key_Proc()
 			System_Flag ^= 1;
 		break;
 		case 6:
-			if(System_Flag) 
+			if(System_Flag == 0) 
 			{
 				Setting ^= 1;
 				if(++Set_Mod == 3) 
@@ -92,12 +93,40 @@ void Seg_Proc()
 	Seg_Slow_Down =1 ;
 	if(Setting == 0)
 	{
+		
 		Seg_Buf[0] = State[System_Flag];
 		Seg_Buf[1] = Led_Mod +1;
 		Seg_Buf[3] = Led_Set_Data[Led_Mod]/100;
 		Seg_Buf[4] = Led_Set_Data[Led_Mod]%100 /10;
 		Seg_Buf[5] = Led_Set_Data[Led_Mod]%100 %10;
+	}else
+	{
+		// 始终先设置显示内容
+		Seg_Buf[0] = State[2];
+		Mod_Set = Led_Mod;
+		Seg_Buf[1] = Mod_Set + 1;
+		Seg_Buf[3] = Led_Set_Data[Mod_Set]/100;
+		Seg_Buf[4] = Led_Set_Data[Mod_Set]%100 /10;
+		Seg_Buf[5] = Led_Set_Data[Mod_Set]%100 %10;
+
+		// 根据闪烁标志清除对应位置
+		if(Setting_Flag == 1)
+		{
+			if(Set_Mod == 1)
+			{
+				Seg_Buf[0] = 10;
+				Seg_Buf[1] = 10;
+			}
+			else if(Set_Mod == 2)
+			{
+				Seg_Buf[3] = 10;
+				Seg_Buf[4] = 10;
+				Seg_Buf[5] = 10;
+			}
+		}
+
 	}
+	
 	
 }
 
@@ -187,7 +216,14 @@ void Timer0Server() interrupt 1
 	if(System_Flag)
 	{
 		System_Tick ++;
-		
+	}
+	if(Setting)
+	{
+		if(++Setting_Tick == 400)
+		{
+			Setting_Tick = 0;
+			Setting_Flag ^= 1;
+		}
 	}
 	
 	
