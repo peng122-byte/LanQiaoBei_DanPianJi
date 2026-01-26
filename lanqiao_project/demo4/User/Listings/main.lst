@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              01/26/2026 20:37:19 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/27/2026 00:37:41 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -21,8 +21,8 @@ line level    source
   11          unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
   12          unsigned char Seg_Pos;//数码管扫描专用变量
   13          unsigned int Seg_Slow_Down;//数码管减速专用变量
-  14          unsigned char Disp_Mode;//数码管显示模式：0-电压采集  1-数据显示  2-参数设置 3-计数统
-             -计
+  14          unsigned char Disp_Mode = 0;//数码管显示模式：0-电压采集  1-数据显示  2-参数设置 3-计�
+             -�统计
   15          unsigned char Voltage_Input [4] ={13,13,13,13};//电压输入数组
   16          unsigned char Voltage_Data [4] ={0,0,0,0};//电压采集数据数组
   17          unsigned char Voltage_Input_Index;//电压数据输入索引
@@ -31,142 +31,182 @@ line level    source
   20          bit Input_Flag;//闪烁标志位
   21          unsigned char Voltage_Val;//输入电压值
   22          unsigned char Key_Error_Count;//按键溢出变量
-  23          /* 键盘处理函数 */
-  24          void Key_Proc()
-  25          {
-  26   1        if (Key_Slow_Down) return;
-  27   1        Key_Slow_Down = 1;//按键减速程序
-  28   1        
-  29   1        Key_Val = Key_Read();//读取按下的键值
-  30   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
-  31   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
-  32   1        
-  33   1        Key_Old = Key_Val;//辅助扫描
+  23          
+  24          /* 键盘处理函数 */
+  25          void Key_Proc()
+  26          {
+  27   1        unsigned char i;
+  28   1        if (Key_Slow_Down) return;
+  29   1        Key_Slow_Down = 1;//按键减速程序
+  30   1        
+  31   1        Key_Val = Key_Read();//读取按下的键值
+  32   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
+  33   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
   34   1        
-  35   1        
-  36   1        if(Disp_Mode == 0)
-  37   1        {
-  38   2          if(Voltage_Input_Index <4)
-  39   2          {
-  40   3            if((Key_Down >= 1) && (Key_Down <= 10))
-  41   3            {
-  42   4              Voltage_Val = Key_Down - 1;
-  43   4              Voltage_Input[Voltage_Input_Index] = Voltage_Val;
-  44   4              Voltage_Input_Index ++;
-  45   4            }
-  46   3          }else
-  47   2          {
-  48   3            Key_Error_Count ++;
-  49   3          }
-  50   2        }
-  51   1          
-  52   1          
-  53   1        
-C51 COMPILER V9.59.0.0   MAIN                                                              01/26/2026 20:37:19 PAGE 2   
+  35   1        Key_Old = Key_Val;//辅助扫描
+  36   1        
+  37   1        
+  38   1        if(Disp_Mode == 0)
+  39   1        {
+  40   2          if(Voltage_Input_Index < 4)  // 改为 < 4，防止越界
+  41   2          {
+  42   3            if((Key_Down >= 1) && (Key_Down <= 10))
+  43   3            {
+  44   4              Voltage_Val = Key_Down - 1;
+  45   4              Voltage_Input[Voltage_Input_Index] = Voltage_Val;
+  46   4              Voltage_Input_Index ++;
+  47   4              Key_Error_Count = 0;
+  48   4            }else
+  49   3            {
+  50   4            Key_Error_Count ++;
+  51   4            }
+  52   3          }
+  53   2      
+C51 COMPILER V9.59.0.0   MAIN                                                              01/27/2026 00:37:41 PAGE 2   
 
-  54   1        
-  55   1      }
-  56          
-  57          
-  58          
-  59          /* 信息处理函数 */
-  60          void Seg_Proc()
-  61          {
-  62   1        if (Seg_Slow_Down) return;
-  63   1        Seg_Slow_Down =1 ;
-  64   1        switch(Disp_Mode)
-  65   1        {
-  66   2          case 0:
-  67   2            Seg_Buf[0] = 10;
-  68   2            Seg_Buf[1] = 10;
-  69   2            Seg_Buf[Voltage_Input_Index + 2] = Voltage_Input[Voltage_Input_Index];
-  70   2          if(Input_Flag == 1)
-  71   2          {
-  72   3            Seg_Buf[Voltage_Input_Index + 2] = 10;
-  73   3          }
-  74   2            
-  75   2          
-  76   2          break;
-  77   2          case 1:
-  78   2            
-  79   2          break;
-  80   2          case 2:
-  81   2            
-  82   2          break;
-  83   2          case 3:
-  84   2            
-  85   2          break;
-  86   2            
-  87   2          
-  88   2        }
-  89   1        
-  90   1      }
-  91          
-  92          
-  93          
-  94          
-  95          /* 其他显示函数 */
-  96          void Led_Proc()
-  97          {
-  98   1        
-  99   1      }
- 100          
- 101          
- 102          
- 103          
- 104          /* 定时器0中断初始化函数 */
- 105          void Timer0Init(void)   //1毫秒@12.000MHz
- 106          {
- 107   1        TMOD &= 0xF0;   //设置定时器模式
- 108   1        TMOD |= 0x01;   //设置定时器模式
- 109   1        TL0 = 0x18;   //设置定时初始值
- 110   1        TH0 = 0xFC;   //设置定时初始值
- 111   1        TF0 = 0;    //清除TF0标志
- 112   1        TR0 = 1;    //定时器0开始计时
- 113   1        ET0 = 1;    //定时器0中断打开
- 114   1        EA = 1;     //总中断打开
- 115   1      }
-C51 COMPILER V9.59.0.0   MAIN                                                              01/26/2026 20:37:19 PAGE 3   
+  54   2          // 按键11确认：独立判断，不受输入索引限制
+  55   2          if((Key_Down == 11) && (Voltage_Input_Index == 4) )
+  56   2          {
+  57   3            for(i = 0;i<4;i++)
+  58   3            {
+  59   4              Voltage_Data[i] = Voltage_Input[i];
+  60   4            }
+  61   3            Disp_Mode = 1;
+  62   3          }
+  63   2        }
+  64   1        
+  65   1        
+  66   1        if(Key_Down == 12)
+  67   1        {
+  68   2          if(++ Disp_Mode == 4) Disp_Mode = 0;
+  69   2        }
+  70   1        
+  71   1        
+  72   1        
+  73   1        
+  74   1        
+  75   1        
+  76   1        
+  77   1        
+  78   1        
+  79   1        
+  80   1      }
+  81          
+  82          
+  83          
+  84          
+  85          /* 信息处理函数 */
+  86          void Seg_Proc()
+  87          {
+  88   1        if (Seg_Slow_Down) return;
+  89   1        Seg_Slow_Down =1 ;
+  90   1        switch(Disp_Mode)
+  91   1        {
+  92   2          case 0:
+  93   2            Seg_Buf[0] = 10;
+  94   2            Seg_Buf[1] = 10;
+  95   2            // 显示已输入的4位数据
+  96   2            Seg_Buf[2] = Voltage_Input[0];
+  97   2            Seg_Buf[3] = Voltage_Input[1];
+  98   2            Seg_Buf[4] = Voltage_Input[2];
+  99   2            Seg_Buf[5] = Voltage_Input[3];
+ 100   2            // 当前输入位闪烁（只在未输入满4位时闪烁）重要！！！
+ 101   2            if(Voltage_Input_Index < 4 && Input_Flag == 1)
+ 102   2            {
+ 103   3              Seg_Buf[Voltage_Input_Index + 2] = 10;
+ 104   3            }
+ 105   2          break;
+ 106   2          case 1:
+ 107   2            Seg_Buf[0] = 14;
+ 108   2            Seg_Buf[1] = 10;
+ 109   2            Seg_Buf[2] = 10;
+ 110   2            Seg_Buf[3] = Voltage_Data[0];
+ 111   2            Seg_Point[3] = 1;
+ 112   2            Seg_Buf[4] = Voltage_Data[1];
+ 113   2            Seg_Buf[5] = Voltage_Data[2];
+ 114   2            if(Voltage_Data[3] >= 5)  Seg_Buf[5] = Voltage_Data[2] + 1;
+ 115   2            
+C51 COMPILER V9.59.0.0   MAIN                                                              01/27/2026 00:37:41 PAGE 3   
 
- 116          
- 117          
- 118          /* 定时器0中断服务函数 */
- 119          void Timer0Server() interrupt 1
- 120          {
- 121   1        TL0 = 0x18;   //设置定时初始值
- 122   1        TH0 = 0xFC;   //设置定时初始值   
- 123   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 124   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 125   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
- 126   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
- 127   1        if (++ Timer250 == 250)
- 128   1        {
- 129   2          Timer250 = 0;
- 130   2          Input_Flag ^= 1;
- 131   2        }
- 132   1        
- 133   1        
- 134   1        
- 135   1          
- 136   1      
- 137   1        
- 138   1      }
+ 116   2            
+ 117   2          break;
+ 118   2          case 2:
+ 119   2            
+ 120   2          break;
+ 121   2          case 3:
+ 122   2            
+ 123   2          break;
+ 124   2            
+ 125   2          
+ 126   2        }
+ 127   1        
+ 128   1      }
+ 129          
+ 130          
+ 131          
+ 132          
+ 133          /* 其他显示函数 */
+ 134          void Led_Proc()
+ 135          {
+ 136   1        
+ 137   1      }
+ 138          
  139          
- 140          /* Main */
- 141          void main()
- 142          {
- 143   1        Timer0Init();
- 144   1        while (1)
- 145   1        {
- 146   2          Key_Proc();
- 147   2          Seg_Proc();
- 148   2          Led_Proc();
- 149   2        }
- 150   1      }
+ 140          
+ 141          
+ 142          /* 定时器0中断初始化函数 */
+ 143          void Timer0Init(void)   //1毫秒@12.000MHz
+ 144          {
+ 145   1        TMOD &= 0xF0;   //设置定时器模式
+ 146   1        TMOD |= 0x01;   //设置定时器模式
+ 147   1        TL0 = 0x18;   //设置定时初始值
+ 148   1        TH0 = 0xFC;   //设置定时初始值
+ 149   1        TF0 = 0;    //清除TF0标志
+ 150   1        TR0 = 1;    //定时器0开始计时
+ 151   1        ET0 = 1;    //定时器0中断打开
+ 152   1        EA = 1;     //总中断打开
+ 153   1      }
+ 154          
+ 155          
+ 156          /* 定时器0中断服务函数 */
+ 157          void Timer0Server() interrupt 1
+ 158          {
+ 159   1        TL0 = 0x18;   //设置定时初始值
+ 160   1        TH0 = 0xFC;   //设置定时初始值   
+ 161   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 162   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 163   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+ 164   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+ 165   1        if (++ Timer250 == 250)
+ 166   1        {
+ 167   2          Timer250 = 0;
+ 168   2          Input_Flag ^= 1;
+ 169   2        }
+ 170   1        
+ 171   1        
+ 172   1        
+ 173   1          
+ 174   1      
+ 175   1        
+ 176   1      }
+ 177          
+C51 COMPILER V9.59.0.0   MAIN                                                              01/27/2026 00:37:41 PAGE 4   
+
+ 178          /* Main */
+ 179          void main()
+ 180          {
+ 181   1        Timer0Init();
+ 182   1        while (1)
+ 183   1        {
+ 184   2          Key_Proc();
+ 185   2          Seg_Proc();
+ 186   2          Led_Proc();
+ 187   2        }
+ 188   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    312    ----
+   CODE SIZE        =    427    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

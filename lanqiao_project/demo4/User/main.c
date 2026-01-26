@@ -11,7 +11,7 @@ unsigned char Seg_Buf[6] = {10,10,13,13,13,13};//数码管显示数据存放数�
 unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
 unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int Seg_Slow_Down;//数码管减速专用变量
-unsigned char Disp_Mode;//数码管显示模式：0-电压采集	1-数据显示	2-参数设置 3-计数统计
+unsigned char Disp_Mode = 0;//数码管显示模式：0-电压采集	1-数据显示	2-参数设置 3-计数统计
 unsigned char Voltage_Input [4] ={13,13,13,13};//电压输入数组
 unsigned char Voltage_Data [4] ={0,0,0,0};//电压采集数据数组
 unsigned char Voltage_Input_Index;//电压数据输入索引
@@ -20,9 +20,11 @@ unsigned int Timer250;//500ms闪烁计时
 bit Input_Flag;//闪烁标志位
 unsigned char Voltage_Val;//输入电压值
 unsigned char Key_Error_Count;//按键溢出变量
+
 /* 键盘处理函数 */
 void Key_Proc()
 {
+	unsigned char i;
 	if (Key_Slow_Down) return;
 	Key_Slow_Down = 1;//按键减速程序
 	
@@ -35,24 +37,48 @@ void Key_Proc()
 	
 	if(Disp_Mode == 0)
 	{
-		if(Voltage_Input_Index <4)
+		if(Voltage_Input_Index < 4)  // 改为 < 4，防止越界
 		{
 			if((Key_Down >= 1) && (Key_Down <= 10))
 			{
 				Voltage_Val = Key_Down - 1;
 				Voltage_Input[Voltage_Input_Index] = Voltage_Val;
 				Voltage_Input_Index ++;
-			}
-		}else
-		{
+				Key_Error_Count = 0;
+			}else
+			{
 			Key_Error_Count ++;
+			}
+		}
+
+		// 按键11确认：独立判断，不受输入索引限制
+		if((Key_Down == 11) && (Voltage_Input_Index == 4) )
+		{
+			for(i = 0;i<4;i++)
+			{
+				Voltage_Data[i] = Voltage_Input[i];
+			}
+			Disp_Mode = 1;
 		}
 	}
-		
-		
+	
+	
+	if(Key_Down == 12)
+	{
+		if(++ Disp_Mode == 4) Disp_Mode = 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }
+
 
 
 
@@ -66,15 +92,27 @@ void Seg_Proc()
 		case 0:
 			Seg_Buf[0] = 10;
 			Seg_Buf[1] = 10;
-			Seg_Buf[Voltage_Input_Index + 2] = Voltage_Input[Voltage_Input_Index];
-		if(Input_Flag == 1)
-		{
-			Seg_Buf[Voltage_Input_Index + 2] = 10;
-		}
-			
-		
+			// 显示已输入的4位数据
+			Seg_Buf[2] = Voltage_Input[0];
+			Seg_Buf[3] = Voltage_Input[1];
+			Seg_Buf[4] = Voltage_Input[2];
+			Seg_Buf[5] = Voltage_Input[3];
+			// 当前输入位闪烁（只在未输入满4位时闪烁）重要！！！
+			if(Voltage_Input_Index < 4 && Input_Flag == 1)
+			{
+				Seg_Buf[Voltage_Input_Index + 2] = 10;
+			}
 		break;
 		case 1:
+			Seg_Buf[0] = 14;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = Voltage_Data[0];
+			Seg_Point[3] = 1;
+			Seg_Buf[4] = Voltage_Data[1];
+			Seg_Buf[5] = Voltage_Data[2];
+			if(Voltage_Data[3] >= 5)	Seg_Buf[5] = Voltage_Data[2] + 1;
+			
 			
 		break;
 		case 2:
