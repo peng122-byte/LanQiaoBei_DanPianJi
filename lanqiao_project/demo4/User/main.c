@@ -66,7 +66,7 @@ void Seg_Proc()
 		case 0:
 			Seg_Buf[0] = 10;
 			Seg_Buf[1] = 10;
-			Seg_Buf[Voltage_Input_Index + 2] = 1;//Voltage_Input[Voltage_Input_Index];
+			Seg_Buf[Voltage_Input_Index + 2] = Voltage_Input[Voltage_Input_Index];
 		if(Input_Flag == 1)
 		{
 			Seg_Buf[Voltage_Input_Index + 2] = 10;
@@ -124,7 +124,7 @@ void Timer0Server() interrupt 1
 	if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
-	if (++Timer250 == 250)
+	if (++ Timer250 == 250)
 	{
 		Timer250 = 0;
 		Input_Flag ^= 1;
