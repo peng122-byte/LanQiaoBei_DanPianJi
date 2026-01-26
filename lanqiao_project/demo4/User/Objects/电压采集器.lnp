@@ -1,0 +1,6 @@
+".\Objects\Key.obj",
+".\Objects\Led.obj",
+".\Objects\Seg.obj",
+".\Objects\main.obj" 
+TO ".\Objects\电压采集器" 
+PRINT(".\Listings\电压采集器.m51") RAMSIZE(256) 
