@@ -10,16 +10,24 @@ unsigned char Key_Slow_Down;//按键减速专用变量
 unsigned char Seg_Buf[6] = {10,10,13,13,13,13};//数码管显示数据存放数组
 unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
 unsigned char Seg_Pos;//数码管扫描专用变量
-unsigned int Seg_Slow_Down;//数码管减速专用变量
+unsigned int 	Seg_Slow_Down;//数码管减速专用变量
 unsigned char Disp_Mode = 0;//数码管显示模式：0-电压采集	1-数据显示	2-参数设置 3-计数统计
 unsigned char Voltage_Input [4] ={13,13,13,13};//电压输入数组
 unsigned char Voltage_Data [4] ={0,0,0,0};//电压采集数据数组
 unsigned char Voltage_Input_Index;//电压数据输入索引
 unsigned char Voltage_Data_Index;//电压数据索引
-unsigned int Timer250;//500ms闪烁计时
+unsigned int 	Timer250;//500ms闪烁计时
 bit Input_Flag;//闪烁标志位
 unsigned char Voltage_Val;//输入电压值
 unsigned char Key_Error_Count;//按键溢出变量
+unsigned char Voltage_Setting_Data [3] ={3,0,0};//电压参数设置数组
+unsigned char Voltage_Setting;//电压设置
+unsigned char Voltage_Setting_Data_Index;//电压参数设置数组索引
+unsigned char Voltage_Real_Data [3] = {0,0,0};//电压实际值
+unsigned int 	Voltage_Real;//电压真实值
+unsigned int 	Voltage_Old;//电压真实值Old
+unsigned int	Voltage_Count;//电压计数
+
 
 /* 键盘处理函数 */
 void Key_Proc()
@@ -54,37 +62,119 @@ void Key_Proc()
 		// 按键11确认：独立判断，不受输入索引限制
 		if((Key_Down == 11) && (Voltage_Input_Index == 4) )
 		{
+			// 1. 保存旧电压值用于下降沿检测
+			Voltage_Old = Voltage_Real;
+
+			// 2. 复制新输入数据
 			for(i = 0;i<4;i++)
 			{
 				Voltage_Data[i] = Voltage_Input[i];
 			}
+
+			// 3. 立即计算四舍五入值（复制Seg_Proc模式1的逻辑）
+			Voltage_Real_Data[0] = Voltage_Data[0];
+			Voltage_Real_Data[1] = Voltage_Data[1];
+			Voltage_Real_Data[2] = Voltage_Data[2];
+			if(Voltage_Data[3] >= 5)  // 第4位四舍五入
+			{
+				Voltage_Real_Data[2]++;
+				if(Voltage_Real_Data[2] >= 10)
+				{
+					Voltage_Real_Data[2] = 0;
+					Voltage_Real_Data[1]++;
+				}
+				if(Voltage_Real_Data[1] >= 10)
+				{
+					Voltage_Real_Data[1] = 0;
+					Voltage_Real_Data[0]++;
+				}
+			}
+			Voltage_Real = Voltage_Real_Data[2] + 10*Voltage_Real_Data[1] + 100*Voltage_Real_Data[0];
+
+			// 4. 下降沿检测：上次>=阈值 且 当前<阈值
+			Voltage_Setting = Voltage_Setting_Data[2] + 10*Voltage_Setting_Data[1] + 100*Voltage_Setting_Data[0];
+			if((Voltage_Real < Voltage_Setting) && (Voltage_Old >= Voltage_Setting))
+			{
+				Voltage_Count++;
+			}
+
 			Disp_Mode = 1;
+		}
+		
+		
+		if(Key_Down == 14)
+		{
+			if(Disp_Mode == 0)
+			{
+				Voltage_Input_Index = 0;
+				for(i = 0;i<4;i++)
+				{
+				
+					Voltage_Input[i] = 13;
+				
+				}
+			}else if(Disp_Mode == 3)
+			{
+				Voltage_Count = 0;
+			}
+			
+		}
+	}else if(Key_Down == 11)  // 非模式0时按S7返回模式0
+	{
+		Voltage_Input_Index = 0;
+		for(i = 0;i<4;i++)
+		{
+			Voltage_Input[i] = 13;
+		}
+		Disp_Mode = 0;
+	}else if(Key_Down == 12)
+	{
+		if(++ Disp_Mode == 4) Disp_Mode = 1;
+	} 	
+	
+	if(Disp_Mode == 2)
+	{
+		if(Key_Down == 15)
+		{
+			 Voltage_Setting_Data[1] += 5;
+			if( Voltage_Setting_Data[1] == 10)	
+			{
+				Voltage_Setting_Data[1] = 0;
+				Voltage_Setting_Data[0] += 1;
+			}
+			if((Voltage_Setting_Data[0] == 6) && (Voltage_Setting_Data[1] == 5))
+			{	
+				Voltage_Setting_Data[0] = 1;
+				Voltage_Setting_Data[1] =	0;
+			}
+		}
+		if(Key_Down == 16)
+		{
+			
+			if( Voltage_Setting_Data[1] == 0)	
+			{
+				Voltage_Setting_Data[1] = 5;
+				Voltage_Setting_Data[0] -= 1;
+			}else
+			{
+				Voltage_Setting_Data[1] -= 5;
+				
+			}
+			if((Voltage_Setting_Data[0] == 0) && (Voltage_Setting_Data[1] == 5))	
+			{
+				Voltage_Setting_Data[1] = 0;
+				Voltage_Setting_Data[0] = 6;
+			}
 		}
 	}
 	
 	
-	if(Key_Down == 12)
-	{
-		if(++ Disp_Mode == 4) Disp_Mode = 0;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
-
-
-
 
 /* 信息处理函数 */
 void Seg_Proc()
 {
+	unsigned char i;
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
 	switch(Disp_Mode)
@@ -93,8 +183,10 @@ void Seg_Proc()
 			Seg_Buf[0] = 10;
 			Seg_Buf[1] = 10;
 			// 显示已输入的4位数据
+			
 			Seg_Buf[2] = Voltage_Input[0];
 			Seg_Buf[3] = Voltage_Input[1];
+			Seg_Point[3] = 0;
 			Seg_Buf[4] = Voltage_Input[2];
 			Seg_Buf[5] = Voltage_Input[3];
 			// 当前输入位闪烁（只在未输入满4位时闪烁）重要！！！
@@ -111,15 +203,49 @@ void Seg_Proc()
 			Seg_Point[3] = 1;
 			Seg_Buf[4] = Voltage_Data[1];
 			Seg_Buf[5] = Voltage_Data[2];
-			if(Voltage_Data[3] >= 5)	Seg_Buf[5] = Voltage_Data[2] + 1;
-			
-			
+			if(Voltage_Data[3] >= 5)	
+			{
+				Seg_Buf[5] = Voltage_Data[2] + 1;
+			}
+			if(Seg_Buf[5] >= 10)
+			{
+				Seg_Buf[5] = 0;
+				Seg_Buf[4] = Voltage_Data[1] + 1;
+			}
+			if(Seg_Buf[4] >= 10)
+			{
+				Seg_Buf[4] = 0;
+				Seg_Buf[3] = Voltage_Data[0] + 1;
+			}
+			if(Seg_Buf[3] == 10)
+			{
+				Seg_Buf[3] = 0;
+				Seg_Buf[2] = 1;
+			}
+		
 		break;
 		case 2:
-			
+			Seg_Buf[0] = 15;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = Voltage_Setting_Data[0];
+			Seg_Point[3] = 1;
+			Seg_Buf[4] = Voltage_Setting_Data[1];
+			Seg_Buf[5] = Voltage_Setting_Data[2];
 		break;
 		case 3:
-			
+			Seg_Buf[0] =	16; 
+			Seg_Buf[1] =	Voltage_Count / 10000 %10;
+			Seg_Buf[2] =	Voltage_Count / 1000 %10;
+			Seg_Buf[3] =	Voltage_Count / 100 %10;
+			Seg_Point[3] = 0;
+			Seg_Buf[4] =	Voltage_Count	/ 10 %10;
+			Seg_Buf[5] =	Voltage_Count	%10;
+			for(i= 0;i<5;i++)
+			{
+				if(Seg_Buf[i] == 0)	Seg_Buf[i] = 10;
+			}
+		
 		break;
 			
 		
@@ -181,6 +307,7 @@ void main()
 	Timer0Init();
 	while (1)
 	{
+		
 		Key_Proc();
 		Seg_Proc();
 		Led_Proc();
