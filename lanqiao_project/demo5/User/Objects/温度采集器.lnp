@@ -1,0 +1,6 @@
+".\Objects\main.obj",
+".\Objects\Key.obj",
+".\Objects\Led.obj",
+".\Objects\Seg.obj" 
+TO ".\Objects\温度采集器" 
+PRINT(".\Listings\温度采集器.m51") RAMSIZE(256) 

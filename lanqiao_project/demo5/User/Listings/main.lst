@@ -1,0 +1,124 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              01/28/2026 22:44:12 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTEXTEND PRI
+                    -NT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /* 头文件声明区 */
+   2          #include <REGX52.H>//单片机寄存器专用头文件
+   3          #include <Key.h>//按键底层驱动专用头文件
+   4          #include <Seg.h>//数码管底层驱动专用头文件
+   5          #include <intrins.h>
+   6          #include <Led.h>
+   7          /* 变量声明区 */
+   8          unsigned char Key_Val,Key_Down,Key_Old,Key_Up;//按键专用变量
+   9          unsigned char Key_Slow_Down;//按键减速专用变量
+  10          unsigned char Seg_Buf[6] = {10,10,10,10,10,10};//数码管显示数据存放数组
+  11          unsigned char Seg_Point[6] = {0,0,0,0,0,0};//数码管小数点数据存放数组
+  12          unsigned char Seg_Pos;//数码管扫描专用变量
+  13          unsigned int  Seg_Slow_Down;//数码管减速专用变量
+  14          unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};//Led显示数组
+  15          unsigned char Led_Pos;//Led扫描专用变量
+  16          
+  17          /* 键盘处理函数 */
+  18          void Key_Proc()
+  19          {
+  20   1        if (Key_Slow_Down) return;
+  21   1        Key_Slow_Down = 1;//按键减速程序
+  22   1        
+  23   1        Key_Val = Key_Read();//读取按下的键值
+  24   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
+  25   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
+  26   1        
+  27   1        Key_Old = Key_Val;//辅助扫描
+  28   1        
+  29   1        
+  30   1      }
+  31          
+  32          
+  33          
+  34          /* 信息处理函数 */
+  35          void Seg_Proc()
+  36          {
+  37   1        if (Seg_Slow_Down) return;
+  38   1        Seg_Slow_Down =1 ;
+  39   1        
+  40   1      }
+  41          
+  42          
+  43          
+  44          
+  45          /* 其他显示函数 */
+  46          void Led_Proc()
+  47          {
+  48   1        
+  49   1      }
+  50          
+  51          
+  52          
+  53          
+  54          /* 定时器0中断初始化函数 */
+C51 COMPILER V9.59.0.0   MAIN                                                              01/28/2026 22:44:12 PAGE 2   
+
+  55          void Timer0Init(void)   //1毫秒@12.000MHz
+  56          {
+  57   1        TMOD &= 0xF0;   //设置定时器模式
+  58   1        TMOD |= 0x01;   //设置定时器模式
+  59   1        TL0 = 0x18;   //设置定时初始值
+  60   1        TH0 = 0xFC;   //设置定时初始值
+  61   1        TF0 = 0;    //清除TF0标志
+  62   1        TR0 = 1;    //定时器0开始计时
+  63   1        ET0 = 1;    //定时器0中断打开
+  64   1        EA = 1;     //总中断打开
+  65   1      }
+  66          
+  67          
+  68          /* 定时器0中断服务函数 */
+  69          void Timer0Server() interrupt 1
+  70          {
+  71   1        TL0 = 0x18;   //设置定时初始值
+  72   1        TH0 = 0xFC;   //设置定时初始值   
+  73   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+  74   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+  75   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+  76   1        if(++Led_Pos == 8) Seg_Pos = 0;//Led显示专用
+  77   1        Led_Disp(Led_Pos,ucLed[Led_Pos]);
+  78   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+  79   1        
+  80   1        
+  81   1        
+  82   1        
+  83   1          
+  84   1      
+  85   1        
+  86   1      }
+  87          
+  88          /* Main */
+  89          void main()
+  90          {
+  91   1        Timer0Init();
+  92   1        while (1)
+  93   1        {
+  94   2          Key_Proc();
+  95   2          Seg_Proc();
+  96   2          Led_Proc();
+  97   2        }
+  98   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    225    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     29    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
