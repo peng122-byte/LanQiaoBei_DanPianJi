@@ -21,14 +21,15 @@ bit Input_Flag;//闪烁标志位
 unsigned char Voltage_Val;//输入电压值
 unsigned char Key_Error_Count;//按键溢出变量
 unsigned char Voltage_Setting_Data [3] ={3,0,0};//电压参数设置数组
-unsigned char Voltage_Setting;//电压设置
+unsigned int Voltage_Setting;//电压设置
 unsigned char Voltage_Setting_Data_Index;//电压参数设置数组索引
 unsigned char Voltage_Real_Data [3] = {0,0,0};//电压实际值
-unsigned int 	Voltage_Real;//电压真实值
-unsigned int 	Voltage_Old;//电压真实值Old
-unsigned int	Voltage_Count;//电压计数
-
-
+unsigned int 	Voltage_Real = 0;//电压真实值
+unsigned int 	Voltage_Old = 0;//电压真实值Old
+unsigned int	Voltage_Count = 0;//电压计数
+unsigned char ucLed[8] ={0,0,0,0,0,0,0,0};//Led
+unsigned char Led_Pos;
+unsigned int	Sys_Tick;
 /* 键盘处理函数 */
 void Key_Proc()
 {
@@ -43,11 +44,12 @@ void Key_Proc()
 	Key_Old = Key_Val;//辅助扫描
 	
 	
-	if(Disp_Mode == 0)
+	if((Key_Down >= 1) && (Key_Down <= 10))
 	{
 		if(Voltage_Input_Index < 4)  // 改为 < 4，防止越界
 		{
-			if((Key_Down >= 1) && (Key_Down <= 10))
+			Key_Error_Count = 0;
+			if(Disp_Mode == 0)
 			{
 				Voltage_Val = Key_Down - 1;
 				Voltage_Input[Voltage_Input_Index] = Voltage_Val;
@@ -55,88 +57,83 @@ void Key_Proc()
 				Key_Error_Count = 0;
 			}else
 			{
-			Key_Error_Count ++;
+				Key_Error_Count ++;
 			}
 		}
+	}
 
-		// 按键11确认：独立判断，不受输入索引限制
-		if((Key_Down == 11) && (Voltage_Input_Index == 4) )
+	// 按键11确认：独立判断，不受输入索引限制
+	if(Key_Down == 11)
+	{
+		if(Disp_Mode == 0)
 		{
-			// 1. 保存旧电压值用于下降沿检测
-			Voltage_Old = Voltage_Real;
-
-			// 2. 复制新输入数据
-			for(i = 0;i<4;i++)
+				if(Voltage_Input_Index == 4)
 			{
-				Voltage_Data[i] = Voltage_Input[i];
-			}
-
-			// 3. 立即计算四舍五入值（复制Seg_Proc模式1的逻辑）
-			Voltage_Real_Data[0] = Voltage_Data[0];
-			Voltage_Real_Data[1] = Voltage_Data[1];
-			Voltage_Real_Data[2] = Voltage_Data[2];
-			if(Voltage_Data[3] >= 5)  // 第4位四舍五入
-			{
-				Voltage_Real_Data[2]++;
-				if(Voltage_Real_Data[2] >= 10)
-				{
-					Voltage_Real_Data[2] = 0;
-					Voltage_Real_Data[1]++;
-				}
-				if(Voltage_Real_Data[1] >= 10)
-				{
-					Voltage_Real_Data[1] = 0;
-					Voltage_Real_Data[0]++;
-				}
-			}
-			Voltage_Real = Voltage_Real_Data[2] + 10*Voltage_Real_Data[1] + 100*Voltage_Real_Data[0];
-
-			// 4. 下降沿检测：上次>=阈值 且 当前<阈值
-			Voltage_Setting = Voltage_Setting_Data[2] + 10*Voltage_Setting_Data[1] + 100*Voltage_Setting_Data[0];
-			if((Voltage_Real < Voltage_Setting) && (Voltage_Old >= Voltage_Setting))
-			{
-				Voltage_Count++;
-			}
-
-			Disp_Mode = 1;
-		}
-		
-		
-		if(Key_Down == 14)
-		{
-			if(Disp_Mode == 0)
-			{
-				Voltage_Input_Index = 0;
+				Key_Error_Count = 0;
+				// 1. 保存旧电压值用于下降沿检测
+				Voltage_Old = Voltage_Real;
+				// 2. 复制新输入数据
 				for(i = 0;i<4;i++)
 				{
-				
-					Voltage_Input[i] = 13;
-				
+					Voltage_Data[i] = Voltage_Input[i];
 				}
-			}else if(Disp_Mode == 3)
+				// 3. 立即计算四舍五入值（复制Seg_Proc模式1的逻辑）
+				Voltage_Real_Data[0] = Voltage_Data[0];
+				Voltage_Real_Data[1] = Voltage_Data[1];
+				Voltage_Real_Data[2] = Voltage_Data[2];
+				if(Voltage_Data[3] >= 5)  // 第4位四舍五入
+				{
+					Voltage_Real_Data[2]++;
+					if(Voltage_Real_Data[2] >= 10)
+					{
+						Voltage_Real_Data[2] = 0;
+						Voltage_Real_Data[1]++;
+					}
+					if(Voltage_Real_Data[1] >= 10)
+					{
+						Voltage_Real_Data[1] = 0;
+						Voltage_Real_Data[0]++;
+					}
+				}
+				Voltage_Real = Voltage_Real_Data[2] + 10*Voltage_Real_Data[1] + 100*Voltage_Real_Data[0];
+				// 4. 下降沿检测：上次>=阈值 且 当前<阈值
+				Voltage_Setting = Voltage_Setting_Data[2] + 10*Voltage_Setting_Data[1] + 100*Voltage_Setting_Data[0];
+				if((Voltage_Real < Voltage_Setting) && (Voltage_Old >= Voltage_Setting))
+				{
+					Voltage_Count++;
+				}
+				Disp_Mode = 1;
+			}else
 			{
-				Voltage_Count = 0;
+				Key_Error_Count ++;
 			}
-			
-		}
-	}else if(Key_Down == 11)  // 非模式0时按S7返回模式0
-	{
-		Voltage_Input_Index = 0;
-		for(i = 0;i<4;i++)
+		}else 
 		{
-			Voltage_Input[i] = 13;
+			Voltage_Input_Index = 0;
+			for(i = 0;i<4;i++)
+			{
+				Voltage_Input[i] = 13;
+			}
+			Disp_Mode = 0;
 		}
-		Disp_Mode = 0;
-	}else if(Key_Down == 12)
-	{
-		if(++ Disp_Mode == 4) Disp_Mode = 1;
+	}
+	if(Key_Down == 12)
+	{	
+		if(Disp_Mode != 0)
+		{
+			Key_Error_Count = 0;
+			if(++ Disp_Mode == 4) Disp_Mode = 1;
+		}else
+		{
+			Key_Error_Count ++;
+		}
 	} 	
-	
-	if(Disp_Mode == 2)
+	if(Key_Down == 15)
 	{
-		if(Key_Down == 15)
+		if(Disp_Mode == 2)
 		{
-			 Voltage_Setting_Data[1] += 5;
+			Key_Error_Count = 0;
+			Voltage_Setting_Data[1] += 5;
 			if( Voltage_Setting_Data[1] == 10)	
 			{
 				Voltage_Setting_Data[1] = 0;
@@ -147,10 +144,16 @@ void Key_Proc()
 				Voltage_Setting_Data[0] = 1;
 				Voltage_Setting_Data[1] =	0;
 			}
-		}
-		if(Key_Down == 16)
+		}else
 		{
-			
+			Key_Error_Count ++;
+		}
+	}
+	if(Key_Down == 16)
+	{
+		if(Disp_Mode == 2)
+		{
+			Key_Error_Count = 0;
 			if( Voltage_Setting_Data[1] == 0)	
 			{
 				Voltage_Setting_Data[1] = 5;
@@ -165,10 +168,11 @@ void Key_Proc()
 				Voltage_Setting_Data[1] = 0;
 				Voltage_Setting_Data[0] = 6;
 			}
+		}else
+		{
+			Key_Error_Count ++;
 		}
 	}
-	
-	
 }
 
 /* 信息处理函数 */
@@ -222,7 +226,6 @@ void Seg_Proc()
 				Seg_Buf[3] = 0;
 				Seg_Buf[2] = 1;
 			}
-		
 		break;
 		case 2:
 			Seg_Buf[0] = 15;
@@ -245,21 +248,33 @@ void Seg_Proc()
 			{
 				if(Seg_Buf[i] == 0)	Seg_Buf[i] = 10;
 			}
-		
 		break;
-			
-		
 	}
-	
 }
-
-
-
-
 /* 其他显示函数 */
 void Led_Proc()
 {
-	
+	if(Sys_Tick >= 5000)
+	{
+		ucLed[0] = 1;
+	}else
+	{
+		ucLed[0] = 0;
+	}
+	if((Voltage_Count %2) != 0)
+	{
+		ucLed[1] = 1;
+	}else
+	{
+		ucLed[1] = 0;
+	}
+	if(Key_Error_Count == 3)
+	{
+		ucLed[2] = 1;
+	}else if(Key_Error_Count == 0)
+	{
+		ucLed[2] = 0;
+	}
 }
 
 
@@ -288,12 +303,17 @@ void Timer0Server() interrupt 1
 	if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+	if(++Led_Pos == 8) Led_Pos = 0;
+	Led_Disp(Led_Pos,ucLed[Led_Pos]);
 	if (++ Timer250 == 250)
 	{
 		Timer250 = 0;
 		Input_Flag ^= 1;
 	}
-	
+	if(Voltage_Real < Voltage_Setting)
+	{
+		if(++Sys_Tick == 501 ) Sys_Tick = 500;
+	}
 	
 	
 		
