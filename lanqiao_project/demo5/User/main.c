@@ -15,6 +15,8 @@ unsigned char	ucLed[8] = {0,0,0,0,0,0,0,0};//Led显示数组
 unsigned char	Led_Pos;//Led扫描专用变量
 unsigned char Seg_Dis_Mode;//数码管显示模式 0-温度采集界面 1-数据显示界面 2-参数设置界面
 unsigned char Temperature_Input[3] = {13,13,13};//温度输入数组
+unsigned char Temperature_Input_Point[3] = {0,0,0};//小数点输入数组
+bit Num_Input;//数字输入完成标志位
 unsigned int	Temperature_Input_Data;//温度输入数据
 unsigned char Temperature_Input_Index ;//温度输入数组索引
 unsigned int	Time250; 
@@ -39,12 +41,21 @@ void Key_Proc()
 	
 	if(Seg_Dis_Mode == 0)
 	{
-		if((Key_Down > 0) && (Key_Down <= 10))
+		if((Key_Down > 0) && (Key_Down <= 10)	&&	(Num_Input == 0))
 		{
 			if(Temperature_Input_Index < 3)
 			{
 				Temperature_Input[Temperature_Input_Index] = Key_Down;
-				Temperature_Input_Index	++;
+				Num_Input = 1;
+			}
+		}
+		if((Key_Down == 11)	&&	(Num_Input ==	1))
+		{
+			if(Temperature_Input_Index < 3)
+			{
+				Num_Input = 0;
+				Temperature_Input_Point[Temperature_Input_Index] = 1;
+//				Temperature_Input_Index	++;
 			}
 		}
 	}
