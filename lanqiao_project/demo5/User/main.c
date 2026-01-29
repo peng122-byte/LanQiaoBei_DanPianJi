@@ -13,7 +13,18 @@ unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int	Seg_Slow_Down;//数码管减速专用变量
 unsigned char	ucLed[8] = {0,0,0,0,0,0,0,0};//Led显示数组
 unsigned char	Led_Pos;//Led扫描专用变量
-
+unsigned char Seg_Dis_Mode;//数码管显示模式 0-温度采集界面 1-数据显示界面 2-参数设置界面
+unsigned char Temperature_Input[3] = {13,13,13};//温度输入数组
+unsigned int	Temperature_Input_Data;//温度输入数据
+unsigned char Temperature_Input_Index ;//温度输入数组索引
+unsigned int	Time250; 
+bit Flag_0;//模式0闪烁标志位
+unsigned char Temperature_Real;//实际温度数据
+unsigned char	TMAX;//温度上限参数
+unsigned char TMIN;//温度下限参数
+unsigned char Temperature_Setting[4]	={3,0,2,0};//温度参数设置数组
+unsigned char Temperature_Setting_Index;//温度参数设置数组索引
+bit Flag_2;//模式2闪烁标志位
 /* 键盘处理函数 */
 void Key_Proc()
 {
@@ -26,7 +37,17 @@ void Key_Proc()
 	
 	Key_Old = Key_Val;//辅助扫描
 	
-	
+	if(Seg_Dis_Mode == 0)
+	{
+		if((Key_Down > 0) && (Key_Down <= 10))
+		{
+			if(Temperature_Input_Index < 3)
+			{
+				Temperature_Input[Temperature_Input_Index] = Key_Down;
+				Temperature_Input_Index	++;
+			}
+		}
+	}
 }
 
 
@@ -36,12 +57,46 @@ void Seg_Proc()
 {
 	if (Seg_Slow_Down) return;
 	Seg_Slow_Down =1 ;
-	
+	switch (Seg_Dis_Mode)
+	{
+		case 0:
+			Seg_Buf[0] = 12;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = Temperature_Input[0];
+			Seg_Buf[4] = Temperature_Input[1];
+			Seg_Buf[5] = Temperature_Input[2];
+			if(Flag_0)
+			{
+				if(Temperature_Input_Index < 2)
+				{
+					Seg_Buf[Temperature_Input_Index + 3] = 10;
+				}
+				if(Temperature_Input_Index == 2)	Seg_Buf[5] = 10;
+			}
+		break;
+		case 1:
+			Seg_Buf[0] = 14;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = 10;
+			Seg_Buf[4] = Temperature_Real/10 %10;
+			Seg_Buf[5] = Temperature_Real %10;
+		break;
+		case 2:
+			Seg_Buf[0] = 15;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = Temperature_Setting[0] ;
+			Seg_Buf[3] = Temperature_Setting[1] ;
+			Seg_Buf[4] = Temperature_Setting[2] ;
+			Seg_Buf[5] = Temperature_Setting[3] ;
+		if(Flag_2)
+			{
+				Seg_Buf[Temperature_Setting_Index + 2] = 10;
+			}
+		break;
+	}
 }
-
-
-
-
 /* 其他显示函数 */
 void Led_Proc()
 {
@@ -76,7 +131,12 @@ void Timer0Server() interrupt 1
 	if(++Led_Pos == 8) Seg_Pos = 0;//Led显示专用
 	Led_Disp(Led_Pos,ucLed[Led_Pos]);
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
-	
+	if(++Time250 ==250)
+	{
+		Time250 = 0;
+		if(Seg_Dis_Mode == 0)	Flag_0 ^= 1;
+		if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
+	}
 	
 	
 	
