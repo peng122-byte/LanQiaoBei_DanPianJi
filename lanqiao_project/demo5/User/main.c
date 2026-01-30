@@ -17,19 +17,24 @@ unsigned char Seg_Dis_Mode;//数码管显示模式 0-温度采集界面 1-数据
 unsigned char Temperature_Input[3] = {13,13,13};//温度输入数组
 unsigned char Temperature_Input_Point[3] = {0,0,0};//小数点输入数组
 bit Num_Input;//数字输入完成标志位
+bit Point_Input;//小数点输入完成标志位
 unsigned int	Temperature_Input_Data;//温度输入数据
 unsigned char Temperature_Input_Index ;//温度输入数组索引
 unsigned int	Time250; 
 bit Flag_0;//模式0闪烁标志位
-unsigned char Temperature_Real;//实际温度数据
+unsigned char Temperature_Real [3] ={0,0,0};//实际温度数据
 unsigned char	TMAX;//温度上限参数
 unsigned char TMIN;//温度下限参数
 unsigned char Temperature_Setting[4]	={3,0,2,0};//温度参数设置数组
 unsigned char Temperature_Setting_Index;//温度参数设置数组索引
 bit Flag_2;//模式2闪烁标志位
+unsigned char Point_Wei;//小数点所在位数
+bit Mode_Switch;//模式切换标志位
 /* 键盘处理函数 */
 void Key_Proc()
 {
+	unsigned char i;
+	unsigned char j;
 	if (Key_Slow_Down) return;
 	Key_Slow_Down = 1;//按键减速程序
 	
@@ -41,22 +46,118 @@ void Key_Proc()
 	
 	if(Seg_Dis_Mode == 0)
 	{
-		if((Key_Down > 0) && (Key_Down <= 10)	&&	(Num_Input == 0))
+		
+		if((Key_Down > 0) && (Key_Down <= 10)	)
 		{
 			if(Temperature_Input_Index < 3)
 			{
-				Temperature_Input[Temperature_Input_Index] = Key_Down;
+				Temperature_Input[Temperature_Input_Index] = Key_Down - 1;
 				Num_Input = 1;
+				Temperature_Input_Index	++;
 			}
 		}
-		if((Key_Down == 11)	&&	(Num_Input ==	1))
+		if((Key_Down == 11)	&&	(Num_Input ==	1) && (Point_Input == 0))
 		{
-			if(Temperature_Input_Index < 3)
+			if(Temperature_Input_Index > 0)
 			{
 				Num_Input = 0;
-				Temperature_Input_Point[Temperature_Input_Index] = 1;
-//				Temperature_Input_Index	++;
+				Point_Input = 1;
+				Temperature_Input_Point[Temperature_Input_Index	- 1] = 1;
+
 			}
+		}
+	}
+	if(Key_Down == 16)
+	{
+		if(Seg_Dis_Mode == 0)
+		{
+			for(i=0;i<3;i ++)
+			{
+				if(Temperature_Input_Point[i]	== 1)	Point_Wei = i;
+				if(Point_Input == 0) Point_Wei = 2;
+				
+			}
+			switch(Point_Wei)
+			{
+				case 0:
+					Temperature_Real [1] = 0;
+					Temperature_Real [2] = Temperature_Input [0];
+					if(Temperature_Input [1] >= 5)
+					{
+						Temperature_Real [2] ++;
+						if(Temperature_Real [2] == 10)
+						{
+							Temperature_Real [2] = 0;
+							Temperature_Real [1] ++;
+						}
+					}
+				break;
+				case 1:
+					Temperature_Real [1] = Temperature_Input [0];
+					Temperature_Real [2] = Temperature_Input [1];
+					if(Temperature_Input [2] >= 5)
+						{
+							Temperature_Real [2] ++;
+							if(Temperature_Real [2] == 10)
+							{
+								Temperature_Real [2] = 0;
+								Temperature_Real [1] ++;
+								if(Temperature_Real [1] == 10)
+								{
+									Temperature_Real [1] = 0;
+									Temperature_Real [0] ++;
+								}
+							}
+						}
+				break;
+				case 2:
+					Temperature_Input_Index = 0;  //重置！
+					Num_Input = 0;
+					Point_Input = 0;
+					for(j=0;j<3;j++)
+					{
+						Temperature_Real [j] = 0;
+					}
+					for(i=0;i<3;i++)
+					{
+						Temperature_Input_Point[i] = 0;
+						Temperature_Input[i] = 13;
+					}
+				break;
+			}
+			Temperature_Input_Data = Temperature_Real [0]*100 + Temperature_Real [1]*10 + Temperature_Real [2];
+			if((Temperature_Input_Data >= 0) && (Temperature_Input_Data <= 85) && (Num_Input == 1))
+			{
+				Seg_Dis_Mode = 1;
+			}else
+			{
+				Temperature_Input_Index = 0;  //重置！
+				Num_Input = 0;
+				Point_Input = 0;
+				for(j=0;j<3;j++)
+				{
+					Temperature_Real [j] = 0;
+				}
+				for(i=0;i<3;i++)
+				{
+					Temperature_Input_Point[i] = 0;
+					Temperature_Input[i] = 13;
+				}
+			}
+
+		}else
+		{
+			Seg_Dis_Mode = 0;
+		}
+	}
+	if(Key_Down == 12)
+	{
+		if(Seg_Dis_Mode == 1)
+		{
+			Seg_Dis_Mode = 2;
+		}else if(Seg_Dis_Mode == 2)
+		{
+			Seg_Dis_Mode = 1;
 		}
 	}
 }
@@ -75,8 +176,11 @@ void Seg_Proc()
 			Seg_Buf[1] = 10;
 			Seg_Buf[2] = 10;
 			Seg_Buf[3] = Temperature_Input[0];
+			Seg_Point[3] = Temperature_Input_Point[0];
 			Seg_Buf[4] = Temperature_Input[1];
+			Seg_Point[4] = Temperature_Input_Point[1];
 			Seg_Buf[5] = Temperature_Input[2];
+			
 			if(Flag_0)
 			{
 				if(Temperature_Input_Index < 2)
@@ -91,8 +195,10 @@ void Seg_Proc()
 			Seg_Buf[1] = 10;
 			Seg_Buf[2] = 10;
 			Seg_Buf[3] = 10;
-			Seg_Buf[4] = Temperature_Real/10 %10;
-			Seg_Buf[5] = Temperature_Real %10;
+			Seg_Point[3] = 0;
+			Seg_Point[4] = 0;
+			Seg_Buf[4] = Temperature_Real [1] ;
+			Seg_Buf[5] = Temperature_Real [2] ;
 		break;
 		case 2:
 			Seg_Buf[0] = 15;
@@ -139,7 +245,7 @@ void Timer0Server() interrupt 1
 	if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
 	if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
-	if(++Led_Pos == 8) Seg_Pos = 0;//Led显示专用
+	if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
 	Led_Disp(Led_Pos,ucLed[Led_Pos]);
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
 	if(++Time250 ==250)
