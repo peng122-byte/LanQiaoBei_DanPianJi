@@ -1892,11 +1892,11 @@
       </Doc>
       <Doc>
         <Name>.\main.c</Name>
-        <ColumnNumber>45</ColumnNumber>
-        <TopLine>177</TopLine>
-        <CurrentLine>213</CurrentLine>
+        <ColumnNumber>39</ColumnNumber>
+        <TopLine>127</TopLine>
+        <CurrentLine>165</CurrentLine>
         <Folding>1</Folding>
-        <ContractedFolders>228</ContractedFolders>
+        <ContractedFolders>232</ContractedFolders>
         <PaneID>0</PaneID>
       </Doc>
     </MDIGroup>

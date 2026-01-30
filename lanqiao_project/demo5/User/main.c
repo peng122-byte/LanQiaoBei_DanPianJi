@@ -160,6 +160,10 @@ void Key_Proc()
 			Seg_Dis_Mode = 1;
 		}
 	}
+	if(Key_Down == 13)
+	{
+		if(++Temperature_Setting_Index == 2) Temperature_Setting_Index = 0;
+	}
 }
 
 
