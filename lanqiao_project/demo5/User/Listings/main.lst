@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:07:50 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:49:01 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   51   2          {
   52   3            if(Temperature_Input_Index < 3)
   53   3            {
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:07:50 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:49:01 PAGE 2   
 
   54   4              Temperature_Input[Temperature_Input_Index] = Key_Down - 1;
   55   4              Num_Input = 1;
@@ -126,7 +126,7 @@ line level    source
  113   4              case 2:
  114   4                Temperature_Input_Index = 0;  //重置！
  115   4                Num_Input = 0;
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:07:50 PAGE 3   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:49:01 PAGE 3   
 
  116   4                Point_Input = 0;
  117   4                for(j=0;j<3;j++)
@@ -190,7 +190,7 @@ line level    source
  175   2            Seg_Buf[0] = 12;
  176   2            Seg_Buf[1] = 10;
  177   2            Seg_Buf[2] = 10;
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:07:50 PAGE 4   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:49:01 PAGE 4   
 
  178   2            Seg_Buf[3] = Temperature_Input[0];
  179   2            Seg_Point[3] = Temperature_Input_Point[0];
@@ -227,75 +227,76 @@ line level    source
  210   2          if(Flag_2)
  211   2            {
  212   3              Seg_Buf[Temperature_Setting_Index + 2] = 10;
- 213   3            }
- 214   2          break;
- 215   2        }
- 216   1      }
- 217          /* 其他显示函数 */
- 218          void Led_Proc()
- 219          {
- 220   1        
- 221   1      }
- 222          
+ 213   3              Seg_Buf[Temperature_Setting_Index + 3] = 10;
+ 214   3            }
+ 215   2          break;
+ 216   2        }
+ 217   1      }
+ 218          /* 其他显示函数 */
+ 219          void Led_Proc()
+ 220          {
+ 221   1        
+ 222   1      }
  223          
  224          
  225          
- 226          /* 定时器0中断初始化函数 */
- 227          void Timer0Init(void)   //1毫秒@12.000MHz
- 228          {
- 229   1        TMOD &= 0xF0;   //设置定时器模式
- 230   1        TMOD |= 0x01;   //设置定时器模式
- 231   1        TL0 = 0x18;   //设置定时初始值
- 232   1        TH0 = 0xFC;   //设置定时初始值
- 233   1        TF0 = 0;    //清除TF0标志
- 234   1        TR0 = 1;    //定时器0开始计时
- 235   1        ET0 = 1;    //定时器0中断打开
- 236   1        EA = 1;     //总中断打开
- 237   1      }
- 238          
+ 226          
+ 227          /* 定时器0中断初始化函数 */
+ 228          void Timer0Init(void)   //1毫秒@12.000MHz
+ 229          {
+ 230   1        TMOD &= 0xF0;   //设置定时器模式
+ 231   1        TMOD |= 0x01;   //设置定时器模式
+ 232   1        TL0 = 0x18;   //设置定时初始值
+ 233   1        TH0 = 0xFC;   //设置定时初始值
+ 234   1        TF0 = 0;    //清除TF0标志
+ 235   1        TR0 = 1;    //定时器0开始计时
+ 236   1        ET0 = 1;    //定时器0中断打开
+ 237   1        EA = 1;     //总中断打开
+ 238   1      }
  239          
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:07:50 PAGE 5   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:49:01 PAGE 5   
 
- 240          /* 定时器0中断服务函数 */
- 241          void Timer0Server() interrupt 1
- 242          {
- 243   1        TL0 = 0x18;   //设置定时初始值
- 244   1        TH0 = 0xFC;   //设置定时初始值   
- 245   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 246   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 247   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
- 248   1        if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
- 249   1        Led_Disp(Led_Pos,ucLed[Led_Pos]);
- 250   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
- 251   1        if(++Time250 ==250)
- 252   1        {
- 253   2          Time250 = 0;
- 254   2          if(Seg_Dis_Mode == 0) Flag_0 ^= 1;
- 255   2          if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
- 256   2        }
- 257   1        
+ 240          
+ 241          /* 定时器0中断服务函数 */
+ 242          void Timer0Server() interrupt 1
+ 243          {
+ 244   1        TL0 = 0x18;   //设置定时初始值
+ 245   1        TH0 = 0xFC;   //设置定时初始值   
+ 246   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 247   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 248   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+ 249   1        if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
+ 250   1        Led_Disp(Led_Pos,ucLed[Led_Pos]);
+ 251   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+ 252   1        if(++Time250 ==250)
+ 253   1        {
+ 254   2          Time250 = 0;
+ 255   2          if(Seg_Dis_Mode == 0) Flag_0 ^= 1;
+ 256   2          if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
+ 257   2        }
  258   1        
  259   1        
- 260   1          
- 261   1      
- 262   1        
- 263   1      }
- 264          
- 265          /* Main */
- 266          void main()
- 267          {
- 268   1        Timer0Init();
- 269   1        while (1)
- 270   1        {
- 271   2          Key_Proc();
- 272   2          Seg_Proc();
- 273   2          Led_Proc();
- 274   2        }
- 275   1      }
+ 260   1        
+ 261   1          
+ 262   1      
+ 263   1        
+ 264   1      }
+ 265          
+ 266          /* Main */
+ 267          void main()
+ 268          {
+ 269   1        Timer0Init();
+ 270   1        while (1)
+ 271   1        {
+ 272   2          Key_Proc();
+ 273   2          Seg_Proc();
+ 274   2          Led_Proc();
+ 275   2        }
+ 276   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    818    ----
+   CODE SIZE        =    825    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

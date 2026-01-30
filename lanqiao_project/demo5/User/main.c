@@ -210,6 +210,7 @@ void Seg_Proc()
 		if(Flag_2)
 			{
 				Seg_Buf[Temperature_Setting_Index + 2] = 10;
+				Seg_Buf[Temperature_Setting_Index + 3] = 10;
 			}
 		break;
 	}
