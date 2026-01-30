@@ -162,7 +162,8 @@ void Key_Proc()
 	}
 	if(Key_Down == 13)
 	{
-		if(++Temperature_Setting_Index == 2) Temperature_Setting_Index = 0;
+		Temperature_Setting_Index += 2;
+		if(++Temperature_Setting_Index == 4) Temperature_Setting_Index = 0;
 	}
 }
 
