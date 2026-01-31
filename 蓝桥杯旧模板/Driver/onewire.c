@@ -3,10 +3,11 @@
 
 sbit DQ = P1^4;  
 
+
 //单总线内部延时函数
 void Delay_OneWire(unsigned int t)  
 {
-	t *= 12;
+	//t *= 12;
 	while(t--);
 }
 
@@ -62,8 +63,7 @@ bit init_ds18b20(void)
   	return initflag;
 }
 
-
-float rd_temperature()
+float read_t()
 {
 	unsigned char low,high;
 	init_ds18b20();
@@ -71,8 +71,8 @@ float rd_temperature()
 	Write_DS18B20(0x44);
 	init_ds18b20();
 	Write_DS18B20(0xcc);
-	Write_DS18B20(0xbe);	
+	Write_DS18B20(0xbe);
 	low = Read_DS18B20();
 	high = Read_DS18B20();
-	return ((high<<8) | low) / 16.0;
+	return ((high << 8) | low) / 16.0;
 }

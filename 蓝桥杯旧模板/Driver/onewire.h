@@ -3,6 +3,6 @@
 
 
 
-float rd_temperature(void);  
+float read_t();  
 
 #endif
