@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:54:54 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -31,283 +31,463 @@ line level    source
   20          bit Point_Input;//小数点输入完成标志位
   21          unsigned int  Temperature_Input_Data;//温度输入数据
   22          unsigned char Temperature_Input_Index ;//温度输入数组索引
-  23          unsigned int  Time250; 
-  24          bit Flag_0;//模式0闪烁标志位
-  25          unsigned char Temperature_Real [3] ={0,0,0};//实际温度数据
-  26          unsigned char TMAX;//温度上限参数
-  27          unsigned char TMIN;//温度下限参数
-  28          unsigned char Temperature_Setting[4]  ={3,0,2,0};//温度参数设置数组
-  29          unsigned char Temperature_Setting_Index;//温度参数设置数组索引
-  30          bit Flag_2;//模式2闪烁标志位
-  31          unsigned char Point_Wei;//小数点所在位数
-  32          bit Mode_Switch;//模式切换标志位
-  33          /* 键盘处理函数 */
-  34          void Key_Proc()
-  35          {
-  36   1        unsigned char i;
-  37   1        unsigned char j;
-  38   1        if (Key_Slow_Down) return;
-  39   1        Key_Slow_Down = 1;//按键减速程序
-  40   1        
-  41   1        Key_Val = Key_Read();//读取按下的键值
-  42   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
-  43   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
-  44   1        
-  45   1        Key_Old = Key_Val;//辅助扫描
-  46   1        
-  47   1        if(Seg_Dis_Mode == 0)
-  48   1        {
-  49   2          
-  50   2          if((Key_Down > 0) && (Key_Down <= 10) )
-  51   2          {
-  52   3            if(Temperature_Input_Index < 3)
-  53   3            {
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:54:54 PAGE 2   
+  23          unsigned char Temperature_Data;//温度数据
+  24          unsigned int  Time250; 
+  25          bit Flag_0;//模式0闪烁标志位
+  26          unsigned char Temperature_Real [3] ={0,0,0};//实际温度数据
+  27          unsigned char TMAX;//温度上限参数
+  28          unsigned char TMIN;//温度下限参数
+  29          unsigned char Temperature_Setting[4]  ={3,0,2,0};//温度参数设置数组
+  30          unsigned char Temperature_Setting_Old[4]  ={3,0,2,0};//温度参数设置保留数组
+  31          unsigned char Temperature_Setting_Index;//温度参数设置数组索引
+  32          bit Flag_2;//模式2闪烁标志位
+  33          unsigned char Point_Wei;//小数点所在位数
+  34          bit Mode_Switch;//模式切换标志位
+  35          unsigned int Key_Long0;//按键14长按
+  36          unsigned int Key_Long1;//按键15长按
+  37          unsigned char Led_Level;//亮度等级
+  38          unsigned char Led_PWM;
+  39          bit Data_Error;
+  40          /* 键盘处理函数 */
+  41          void Key_Proc()
+  42          {
+  43   1        unsigned char i;
+  44   1        unsigned char j;
+  45   1        unsigned char k;
+  46   1        if (Key_Slow_Down) return;
+  47   1        Key_Slow_Down = 1;//按键减速程序
+  48   1        
+  49   1        Key_Val = Key_Read();//读取按下的键值
+  50   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);//下降沿
+  51   1        Key_Up = Key_Old & (Key_Val ^ Key_Old);//上升沿
+  52   1        
+  53   1        Key_Old = Key_Val;//辅助扫描
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 2   
 
-  54   4              Temperature_Input[Temperature_Input_Index] = Key_Down - 1;
-  55   4              Num_Input = 1;
-  56   4              Temperature_Input_Index ++;
-  57   4            }
-  58   3          }
-  59   2          if((Key_Down == 11) &&  (Num_Input == 1) && (Point_Input == 0))
-  60   2          {
-  61   3            if(Temperature_Input_Index > 0)
-  62   3            {
-  63   4              Num_Input = 0;
-  64   4              Point_Input = 1;
-  65   4              Temperature_Input_Point[Temperature_Input_Index - 1] = 1;
-  66   4      
-  67   4            }
-  68   3          }
-  69   2        }
-  70   1        if(Key_Down == 16)
-  71   1        {
-  72   2          if(Seg_Dis_Mode == 0)
-  73   2          {
-  74   3            for(i=0;i<3;i ++)
-  75   3            {
-  76   4              if(Temperature_Input_Point[i] == 1) Point_Wei = i;
-  77   4              if(Point_Input == 0) Point_Wei = 2;
-  78   4              
-  79   4            }
-  80   3            switch(Point_Wei)
-  81   3            {
-  82   4              case 0:
-  83   4                Temperature_Real [1] = 0;
-  84   4                Temperature_Real [2] = Temperature_Input [0];
-  85   4                if(Temperature_Input [1] >= 5)
-  86   4                {
-  87   5                  Temperature_Real [2] ++;
-  88   5                  if(Temperature_Real [2] == 10)
-  89   5                  {
-  90   6                    Temperature_Real [2] = 0;
-  91   6                    Temperature_Real [1] ++;
-  92   6                  }
-  93   5                }
-  94   4              break;
-  95   4              case 1:
-  96   4                Temperature_Real [1] = Temperature_Input [0];
-  97   4                Temperature_Real [2] = Temperature_Input [1];
-  98   4                if(Temperature_Input [2] >= 5)
-  99   4                  {
- 100   5                    Temperature_Real [2] ++;
- 101   5                    if(Temperature_Real [2] == 10)
- 102   5                    {
- 103   6                      Temperature_Real [2] = 0;
- 104   6                      Temperature_Real [1] ++;
- 105   6                      if(Temperature_Real [1] == 10)
- 106   6                      {
- 107   7                        Temperature_Real [1] = 0;
- 108   7                        Temperature_Real [0] ++;
- 109   7                      }
- 110   6                    }
- 111   5                  }
- 112   4              break;
- 113   4              case 2:
- 114   4                Temperature_Input_Index = 0;  //重置！
- 115   4                Num_Input = 0;
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:54:54 PAGE 3   
+  54   1        
+  55   1        if((Key_Down > 0) && (Key_Down <= 10) )
+  56   1        {
+  57   2          if(Seg_Dis_Mode == 0)
+  58   2          {
+  59   3            if(Temperature_Input_Index < 3)
+  60   3            {
+  61   4              Temperature_Input[Temperature_Input_Index] = Key_Down - 1;
+  62   4              Num_Input = 1;
+  63   4              Temperature_Input_Index ++;
+  64   4            }
+  65   3          }
+  66   2        }
+  67   1        if((Key_Down == 11) &&  (Num_Input == 1) && (Point_Input == 0))
+  68   1        {
+  69   2          if(Seg_Dis_Mode == 0)
+  70   2          {
+  71   3            if(Temperature_Input_Index > 0)
+  72   3            {
+  73   4              Num_Input = 0;
+  74   4              Point_Input = 1;
+  75   4              Temperature_Input_Point[Temperature_Input_Index - 1] = 1;
+  76   4            }
+  77   3          }
+  78   2        }
+  79   1        if(Key_Down == 16)
+  80   1        {
+  81   2          if(Seg_Dis_Mode == 0)
+  82   2          {
+  83   3            for(i=0;i<3;i ++)
+  84   3            {
+  85   4              if(Temperature_Input_Point[i] == 1) Point_Wei = i;
+  86   4              if(Point_Input == 0) Point_Wei = 2;
+  87   4              
+  88   4            }
+  89   3            switch(Point_Wei)
+  90   3            {
+  91   4              case 0:
+  92   4                Temperature_Real [1] = 0;
+  93   4                Temperature_Real [2] = Temperature_Input [0];
+  94   4                if(Temperature_Input [1] >= 5)
+  95   4                {
+  96   5                  Temperature_Real [2] ++;
+  97   5                  if(Temperature_Real [2] == 10)
+  98   5                  {
+  99   6                    Temperature_Real [2] = 0;
+ 100   6                    Temperature_Real [1] ++;
+ 101   6                  }
+ 102   5                }
+ 103   4              break;
+ 104   4              case 1:
+ 105   4                Temperature_Real [1] = Temperature_Input [0];
+ 106   4                Temperature_Real [2] = Temperature_Input [1];
+ 107   4                if(Temperature_Input [2] >= 5)
+ 108   4                  {
+ 109   5                    Temperature_Real [2] ++;
+ 110   5                    if(Temperature_Real [2] == 10)
+ 111   5                    {
+ 112   6                      Temperature_Real [2] = 0;
+ 113   6                      Temperature_Real [1] ++;
+ 114   6                      if(Temperature_Real [1] == 10)
+ 115   6                      {
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 3   
 
- 116   4                Point_Input = 0;
- 117   4                for(j=0;j<3;j++)
- 118   4                {
- 119   5                  Temperature_Real [j] = 0;
- 120   5                }
- 121   4                for(i=0;i<3;i++)
- 122   4                {
- 123   5                  Temperature_Input_Point[i] = 0;
- 124   5                  Temperature_Input[i] = 13;
- 125   5                }
- 126   4              break;
- 127   4            }
- 128   3            Temperature_Input_Data = Temperature_Real [0]*100 + Temperature_Real [1]*10 + Temperature_Real [2];
- 129   3            if((Temperature_Input_Data >= 0) && (Temperature_Input_Data <= 85) && (Num_Input == 1))
- 130   3            {
- 131   4              Seg_Dis_Mode = 1;
- 132   4            }else
- 133   3            {
- 134   4              Temperature_Input_Index = 0;  //重置！
- 135   4              Num_Input = 0;
- 136   4              Point_Input = 0;
- 137   4              for(j=0;j<3;j++)
- 138   4              {
- 139   5                Temperature_Real [j] = 0;
- 140   5              }
- 141   4              for(i=0;i<3;i++)
- 142   4              {
- 143   5                Temperature_Input_Point[i] = 0;
- 144   5                Temperature_Input[i] = 13;
- 145   5              }
- 146   4            }
- 147   3      
- 148   3          }else
- 149   2          {
- 150   3            Seg_Dis_Mode = 0;
- 151   3          }
- 152   2        }
- 153   1        if(Key_Down == 12)
- 154   1        {
- 155   2          if(Seg_Dis_Mode == 1)
- 156   2          {
- 157   3            Seg_Dis_Mode = 2;
- 158   3          }else if(Seg_Dis_Mode == 2)
- 159   2          {
- 160   3            Seg_Dis_Mode = 1;
- 161   3          }
- 162   2        }
- 163   1        if(Key_Down == 13)
- 164   1        {
- 165   2          Temperature_Setting_Index += 2;
- 166   2          if(++Temperature_Setting_Index == 4) Temperature_Setting_Index = 0;
- 167   2        }
- 168   1      }
- 169          
- 170          
- 171          
- 172          /* 信息处理函数 */
- 173          void Seg_Proc()
- 174          {
- 175   1        if (Seg_Slow_Down) return;
- 176   1        Seg_Slow_Down =1 ;
- 177   1        switch (Seg_Dis_Mode)
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:54:54 PAGE 4   
+ 116   7                        Temperature_Real [1] = 0;
+ 117   7                        Temperature_Real [0] ++;
+ 118   7                      }
+ 119   6                    }
+ 120   5                  }
+ 121   4              break;
+ 122   4              case 2:
+ 123   4                Temperature_Input_Index = 0;  //重置！
+ 124   4                Num_Input = 0;
+ 125   4                Point_Input = 0;
+ 126   4                for(j=0;j<3;j++)
+ 127   4                {
+ 128   5                  Temperature_Real [j] = 0;
+ 129   5                }
+ 130   4                for(i=0;i<3;i++)
+ 131   4                {
+ 132   5                  Temperature_Input_Point[i] = 0;
+ 133   5                  Temperature_Input[i] = 13;
+ 134   5                }
+ 135   4              break;
+ 136   4            }
+ 137   3            Temperature_Input_Data = Temperature_Real [0]*100 + Temperature_Real [1]*10 + Temperature_Real [2];
+ 138   3            if((Temperature_Input_Data >= 0) && (Temperature_Input_Data <= 85) && (Num_Input == 1))
+ 139   3            {
+ 140   4              Seg_Dis_Mode = 1;
+ 141   4              Temperature_Data = Temperature_Input_Data;
+ 142   4            }else
+ 143   3            {
+ 144   4              Temperature_Input_Index = 0;  //重置！
+ 145   4              Num_Input = 0;
+ 146   4              Point_Input = 0;
+ 147   4              for(j=0;j<3;j++)
+ 148   4              {
+ 149   5                Temperature_Real [j] = 0;
+ 150   5              }
+ 151   4              for(i=0;i<3;i++)
+ 152   4              {
+ 153   5                Temperature_Input_Point[i] = 0;
+ 154   5                Temperature_Input[i] = 13;
+ 155   5              }
+ 156   4            }
+ 157   3          }else
+ 158   2          {
+ 159   3            Temperature_Input_Index = 0;  //重置！
+ 160   3            Num_Input = 0;
+ 161   3            Point_Input = 0;
+ 162   3            for(j=0;j<3;j++)
+ 163   3            {
+ 164   4              Temperature_Real [j] = 0;
+ 165   4            }
+ 166   3            for(i=0;i<3;i++)
+ 167   3            {
+ 168   4              Temperature_Input_Point[i] = 0;
+ 169   4              Temperature_Input[i] = 13;
+ 170   4            }
+ 171   3            Seg_Dis_Mode = 0;
+ 172   3          }
+ 173   2        }
+ 174   1        if(Key_Down == 12)
+ 175   1        {
+ 176   2          if(Seg_Dis_Mode == 1)
+ 177   2          {
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 4   
 
- 178   1        {
- 179   2          case 0:
- 180   2            Seg_Buf[0] = 12;
- 181   2            Seg_Buf[1] = 10;
- 182   2            Seg_Buf[2] = 10;
- 183   2            Seg_Buf[3] = Temperature_Input[0];
- 184   2            Seg_Point[3] = Temperature_Input_Point[0];
- 185   2            Seg_Buf[4] = Temperature_Input[1];
- 186   2            Seg_Point[4] = Temperature_Input_Point[1];
- 187   2            Seg_Buf[5] = Temperature_Input[2];
- 188   2            
- 189   2            if(Flag_0)
- 190   2            {
- 191   3              if(Temperature_Input_Index < 2)
- 192   3              {
- 193   4                Seg_Buf[Temperature_Input_Index + 3] = 10;
- 194   4              }
- 195   3              if(Temperature_Input_Index == 2)  Seg_Buf[5] = 10;
- 196   3            }
- 197   2          break;
- 198   2          case 1:
- 199   2            Seg_Buf[0] = 14;
- 200   2            Seg_Buf[1] = 10;
- 201   2            Seg_Buf[2] = 10;
- 202   2            Seg_Buf[3] = 10;
- 203   2            Seg_Point[3] = 0;
- 204   2            Seg_Point[4] = 0;
- 205   2            Seg_Buf[4] = Temperature_Real [1] ;
- 206   2            Seg_Buf[5] = Temperature_Real [2] ;
- 207   2          break;
- 208   2          case 2:
- 209   2            Seg_Buf[0] = 15;
- 210   2            Seg_Buf[1] = 10;
- 211   2            Seg_Buf[2] = Temperature_Setting[0] ;
- 212   2            Seg_Buf[3] = Temperature_Setting[1] ;
- 213   2            Seg_Buf[4] = Temperature_Setting[2] ;
- 214   2            Seg_Buf[5] = Temperature_Setting[3] ;
- 215   2          if(Flag_2)
- 216   2            {
- 217   3              Seg_Buf[Temperature_Setting_Index + 2] = 10;
- 218   3              Seg_Buf[Temperature_Setting_Index + 3] = 10;
- 219   3            }
- 220   2          break;
- 221   2        }
- 222   1      }
- 223          /* 其他显示函数 */
- 224          void Led_Proc()
- 225          {
- 226   1        
- 227   1      }
- 228          
- 229          
- 230          
- 231          
- 232          /* 定时器0中断初始化函数 */
- 233          void Timer0Init(void)   //1毫秒@12.000MHz
- 234          {
- 235   1        TMOD &= 0xF0;   //设置定时器模式
- 236   1        TMOD |= 0x01;   //设置定时器模式
- 237   1        TL0 = 0x18;   //设置定时初始值
- 238   1        TH0 = 0xFC;   //设置定时初始值
- 239   1        TF0 = 0;    //清除TF0标志
-C51 COMPILER V9.59.0.0   MAIN                                                              01/30/2026 23:54:54 PAGE 5   
+ 178   3            Seg_Dis_Mode = 2;
+ 179   3            Temperature_Setting_Index = 0;
+ 180   3            
+ 181   3          }else if(Seg_Dis_Mode == 2)
+ 182   2          {
+ 183   3            TMAX =  Temperature_Setting[0]*10 + Temperature_Setting[1];
+ 184   3            TMIN =  Temperature_Setting[2]*10 + Temperature_Setting[3];
+ 185   3            if(TMAX >= TMIN)
+ 186   3            {
+ 187   4              for(k = 0;k < 4;k++)
+ 188   4              {
+ 189   5                Temperature_Setting_Old[k] = Temperature_Setting[k];
+ 190   5                Data_Error = 0;
+ 191   5              }
+ 192   4            }else
+ 193   3            {
+ 194   4              for(k = 0;k < 4;k++)
+ 195   4              {
+ 196   5                Temperature_Setting[k] = Temperature_Setting_Old[k];
+ 197   5                Data_Error = 1;
+ 198   5              }
+ 199   4            }
+ 200   3            Seg_Dis_Mode = 1;
+ 201   3            
+ 202   3          }
+ 203   2        }
+ 204   1        if(Key_Down == 13)
+ 205   1        {
+ 206   2          Temperature_Setting_Index += 2;
+ 207   2          if(Temperature_Setting_Index == 4) Temperature_Setting_Index = 0;
+ 208   2        }
+ 209   1        if(Key_Down == 14)
+ 210   1        {
+ 211   2          if(Seg_Dis_Mode == 2)
+ 212   2          {
+ 213   3            Temperature_Setting[Temperature_Setting_Index + 1] ++;
+ 214   3            if(Temperature_Setting[Temperature_Setting_Index + 1] == 10) 
+ 215   3            {
+ 216   4              Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 217   4              Temperature_Setting[Temperature_Setting_Index] ++;
+ 218   4            }
+ 219   3            if((Temperature_Setting[Temperature_Setting_Index] == 7) && (Temperature_Setting[Temperature_Setting_In
+             -dex + 1] == 1))
+ 220   3            {
+ 221   4              Temperature_Setting[Temperature_Setting_Index] = 7;
+ 222   4              Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 223   4            }
+ 224   3          }
+ 225   2        }
+ 226   1        if(Key_Down == 15)
+ 227   1        {
+ 228   2          if(Seg_Dis_Mode == 2)
+ 229   2          {
+ 230   3            Temperature_Setting[Temperature_Setting_Index + 1] --;
+ 231   3            if((Temperature_Setting[Temperature_Setting_Index] == 1) && (Temperature_Setting[Temperature_Setting_In
+             -dex + 1] == 255))
+ 232   3            {
+ 233   4              Temperature_Setting[Temperature_Setting_Index] = 1;
+ 234   4              Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 235   4            }
+ 236   3            if(Temperature_Setting[Temperature_Setting_Index + 1] == 255) 
+ 237   3            {
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 5   
 
- 240   1        TR0 = 1;    //定时器0开始计时
- 241   1        ET0 = 1;    //定时器0中断打开
- 242   1        EA = 1;     //总中断打开
- 243   1      }
- 244          
- 245          
- 246          /* 定时器0中断服务函数 */
- 247          void Timer0Server() interrupt 1
- 248          {
- 249   1        TL0 = 0x18;   //设置定时初始值
- 250   1        TH0 = 0xFC;   //设置定时初始值   
- 251   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 252   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 253   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
- 254   1        if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
- 255   1        Led_Disp(Led_Pos,ucLed[Led_Pos]);
- 256   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
- 257   1        if(++Time250 ==250)
- 258   1        {
- 259   2          Time250 = 0;
- 260   2          if(Seg_Dis_Mode == 0) Flag_0 ^= 1;
- 261   2          if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
+ 238   4              Temperature_Setting[Temperature_Setting_Index + 1] = 9;
+ 239   4              Temperature_Setting[Temperature_Setting_Index] --;
+ 240   4            }
+ 241   3          }
+ 242   2        }
+ 243   1        if(Key_Old == 14)
+ 244   1        {
+ 245   2          if(Seg_Dis_Mode == 2)
+ 246   2          {
+ 247   3            if(Key_Long0 >= 500)
+ 248   3            {
+ 249   4              Temperature_Setting[Temperature_Setting_Index + 1] ++;
+ 250   4              if(Temperature_Setting[Temperature_Setting_Index + 1] == 10) 
+ 251   4              {
+ 252   5                Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 253   5                Temperature_Setting[Temperature_Setting_Index] ++;
+ 254   5              }
+ 255   4              if((Temperature_Setting[Temperature_Setting_Index] == 7) && (Temperature_Setting[Temperature_Setting_I
+             -ndex + 1] == 1))
+ 256   4              {
+ 257   5                Temperature_Setting[Temperature_Setting_Index] = 7;
+ 258   5                Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 259   5              }
+ 260   4            }
+ 261   3          }
  262   2        }
- 263   1        
- 264   1        
- 265   1        
- 266   1          
- 267   1      
- 268   1        
- 269   1      }
- 270          
- 271          /* Main */
- 272          void main()
- 273          {
- 274   1        Timer0Init();
- 275   1        while (1)
- 276   1        {
- 277   2          Key_Proc();
- 278   2          Seg_Proc();
- 279   2          Led_Proc();
- 280   2        }
- 281   1      }
+ 263   1        if(Key_Old == 15)
+ 264   1        {
+ 265   2          if(Key_Long1 >= 500)
+ 266   2          {
+ 267   3              if(Seg_Dis_Mode == 2)
+ 268   3            {
+ 269   4              Temperature_Setting[Temperature_Setting_Index + 1] --;
+ 270   4              if((Temperature_Setting[Temperature_Setting_Index] == 1) && (Temperature_Setting[Temperature_Setting_I
+             -ndex + 1] == 255))
+ 271   4              {
+ 272   5                Temperature_Setting[Temperature_Setting_Index] = 1;
+ 273   5                Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+ 274   5              }
+ 275   4              if(Temperature_Setting[Temperature_Setting_Index + 1] == 255) 
+ 276   4              {
+ 277   5                Temperature_Setting[Temperature_Setting_Index + 1] = 9;
+ 278   5                Temperature_Setting[Temperature_Setting_Index] --;
+ 279   5              }
+ 280   4            }
+ 281   3          }
+ 282   2        }
+ 283   1      }
+ 284          
+ 285          
+ 286          
+ 287          /* 信息处理函数 */
+ 288          void Seg_Proc()
+ 289          {
+ 290   1        if (Seg_Slow_Down) return;
+ 291   1        Seg_Slow_Down =1 ;
+ 292   1        switch (Seg_Dis_Mode)
+ 293   1        {
+ 294   2          case 0:
+ 295   2            Seg_Buf[0] = 12;
+ 296   2            Seg_Buf[1] = 10;
+ 297   2            Seg_Buf[2] = 10;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 6   
+
+ 298   2            Seg_Buf[3] = Temperature_Input[0];
+ 299   2            Seg_Point[3] = Temperature_Input_Point[0];
+ 300   2            Seg_Buf[4] = Temperature_Input[1];
+ 301   2            Seg_Point[4] = Temperature_Input_Point[1];
+ 302   2            Seg_Buf[5] = Temperature_Input[2];
+ 303   2            
+ 304   2            if(Flag_0)
+ 305   2            {
+ 306   3              if(Temperature_Input_Index < 2)
+ 307   3              {
+ 308   4                Seg_Buf[Temperature_Input_Index + 3] = 10;
+ 309   4              }
+ 310   3              if(Temperature_Input_Index == 2)  Seg_Buf[5] = 10;
+ 311   3            }
+ 312   2          break;
+ 313   2          case 1:
+ 314   2            Seg_Buf[0] = 14;
+ 315   2            Seg_Buf[1] = 10;
+ 316   2            Seg_Buf[2] = 10;
+ 317   2            Seg_Buf[3] = 10;
+ 318   2            Seg_Point[3] = 0;
+ 319   2            Seg_Point[4] = 0;
+ 320   2            Seg_Buf[4] = Temperature_Real [1] ;
+ 321   2            Seg_Buf[5] = Temperature_Real [2] ;
+ 322   2          break;
+ 323   2          case 2:
+ 324   2            Seg_Buf[0] = 15;
+ 325   2            Seg_Buf[1] = 10;
+ 326   2            Seg_Buf[2] = Temperature_Setting[0] ;
+ 327   2            Seg_Buf[3] = Temperature_Setting[1] ;
+ 328   2            Seg_Buf[4] = Temperature_Setting[2] ;
+ 329   2            Seg_Buf[5] = Temperature_Setting[3] ;
+ 330   2          if(Flag_2)
+ 331   2            {
+ 332   3              if(Temperature_Setting_Index == 0 )
+ 333   3              {
+ 334   4                Seg_Buf[2] = 10;
+ 335   4                Seg_Buf[3] = 10;
+ 336   4              }
+ 337   3              if(Temperature_Setting_Index == 2)  
+ 338   3              {
+ 339   4                Seg_Buf[4] = 10;
+ 340   4                Seg_Buf[5] = 10;
+ 341   4              }
+ 342   3            }
+ 343   2          break;
+ 344   2        }
+ 345   1      }
+ 346          /* 其他显示函数 */
+ 347          void Led_Proc()
+ 348          {
+ 349   1        if(Temperature_Data > TMAX) 
+ 350   1        {
+ 351   2          Led_Level = 3;
+ 352   2          ucLed[0] = 1;
+ 353   2        }else
+ 354   1        {
+ 355   2          ucLed[0] = 0;
+ 356   2        }
+ 357   1        
+ 358   1        if((Temperature_Data >= TMIN) && (Temperature_Data <= TMAX)) 
+ 359   1        {
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 7   
+
+ 360   2          Led_Level = 6;
+ 361   2          ucLed[1] = 1;
+ 362   2        }else
+ 363   1        {
+ 364   2          ucLed[1] = 0;
+ 365   2        }
+ 366   1        if(Temperature_Data < TMIN) 
+ 367   1        {
+ 368   2          Led_Level = 9;
+ 369   2          ucLed[2] = 1;
+ 370   2        }else
+ 371   1        {
+ 372   2          ucLed[2] = 0;
+ 373   2        }
+ 374   1        if(Data_Error == 1)
+ 375   1        {
+ 376   2          ucLed[3] = 1;
+ 377   2        }else
+ 378   1        {
+ 379   2          ucLed[3] = 0;
+ 380   2        }
+ 381   1      }
+ 382          
+ 383          
+ 384          
+ 385          
+ 386          /* 定时器0中断初始化函数 */
+ 387          void Timer0Init(void)   //1毫秒@12.000MHz
+ 388          {
+ 389   1        TMOD &= 0xF0;   //设置定时器模式
+ 390   1        TMOD |= 0x01;   //设置定时器模式
+ 391   1        TL0 = 0x18;   //设置定时初始值
+ 392   1        TH0 = 0xFC;   //设置定时初始值
+ 393   1        TF0 = 0;    //清除TF0标志
+ 394   1        TR0 = 1;    //定时器0开始计时
+ 395   1        ET0 = 1;    //定时器0中断打开
+ 396   1        EA = 1;     //总中断打开
+ 397   1      }
+ 398          
+ 399          
+ 400          /* 定时器0中断服务函数 */
+ 401          void Timer0Server() interrupt 1
+ 402          {
+ 403   1        TL0 = 0x18;   //设置定时初始值
+ 404   1        TH0 = 0xFC;   //设置定时初始值   
+ 405   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 406   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 407   1        if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
+ 408   1        if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
+ 409   1        Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
+ 410   1        if(++Time250 ==250)
+ 411   1        {
+ 412   2          Time250 = 0;
+ 413   2          if(Seg_Dis_Mode == 0) Flag_0 ^= 1;
+ 414   2          if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
+ 415   2        }
+ 416   1      if(Key_Old == 14)
+ 417   1      {
+ 418   2        Key_Long0 ++;
+ 419   2      }else
+ 420   1      {
+ 421   2        Key_Long0 = 0;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/31/2026 21:56:44 PAGE 8   
+
+ 422   2      }
+ 423   1      if(Key_Old == 15)
+ 424   1      {
+ 425   2        Key_Long1 ++;
+ 426   2      }else
+ 427   1      {
+ 428   2        Key_Long1 = 0;
+ 429   2      }
+ 430   1      /*亮度*/
+ 431   1      if(++ Led_PWM == 10) Led_PWM = 0;
+ 432   1        if(Led_PWM < Led_Level)
+ 433   1          Led_Disp(Led_Pos,ucLed[Led_Pos]);
+ 434   1        else
+ 435   1          Led_Disp(Led_Pos,0);  
+ 436   1      
+ 437   1        
+ 438   1      }
+ 439          
+ 440          
+ 441          /* Main */
+ 442          void main()
+ 443          {
+ 444   1        Timer0Init();
+ 445   1        while (1)
+ 446   1        {
+ 447   2          Key_Proc();
+ 448   2          Seg_Proc();
+ 449   2          Led_Proc();
+ 450   2        }
+ 451   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    849    ----
+   CODE SIZE        =   1500    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     52       1
+   DATA SIZE        =     63       3
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =      5    ----
+   BIT SIZE         =      6    ----
 END OF MODULE INFORMATION.
 
 

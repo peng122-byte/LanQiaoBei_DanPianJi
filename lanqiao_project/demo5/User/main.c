@@ -20,21 +20,29 @@ bit Num_Input;//数字输入完成标志位
 bit Point_Input;//小数点输入完成标志位
 unsigned int	Temperature_Input_Data;//温度输入数据
 unsigned char Temperature_Input_Index ;//温度输入数组索引
+unsigned char	Temperature_Data;//温度数据
 unsigned int	Time250; 
 bit Flag_0;//模式0闪烁标志位
 unsigned char Temperature_Real [3] ={0,0,0};//实际温度数据
 unsigned char	TMAX;//温度上限参数
 unsigned char TMIN;//温度下限参数
 unsigned char Temperature_Setting[4]	={3,0,2,0};//温度参数设置数组
+unsigned char	Temperature_Setting_Old[4]	={3,0,2,0};//温度参数设置保留数组
 unsigned char Temperature_Setting_Index;//温度参数设置数组索引
 bit Flag_2;//模式2闪烁标志位
 unsigned char Point_Wei;//小数点所在位数
 bit Mode_Switch;//模式切换标志位
+unsigned int Key_Long0;//按键14长按
+unsigned int Key_Long1;//按键15长按
+unsigned char	Led_Level;//亮度等级
+unsigned char Led_PWM;
+bit Data_Error;
 /* 键盘处理函数 */
 void Key_Proc()
 {
 	unsigned char i;
 	unsigned char j;
+	unsigned char k;
 	if (Key_Slow_Down) return;
 	Key_Slow_Down = 1;//按键减速程序
 	
@@ -44,10 +52,9 @@ void Key_Proc()
 	
 	Key_Old = Key_Val;//辅助扫描
 	
-	if(Seg_Dis_Mode == 0)
+	if((Key_Down > 0) && (Key_Down <= 10)	)
 	{
-		
-		if((Key_Down > 0) && (Key_Down <= 10)	)
+		if(Seg_Dis_Mode == 0)
 		{
 			if(Temperature_Input_Index < 3)
 			{
@@ -56,14 +63,16 @@ void Key_Proc()
 				Temperature_Input_Index	++;
 			}
 		}
-		if((Key_Down == 11)	&&	(Num_Input ==	1) && (Point_Input == 0))
+	}
+	if((Key_Down == 11)	&&	(Num_Input ==	1) && (Point_Input == 0))
+	{
+		if(Seg_Dis_Mode == 0)
 		{
 			if(Temperature_Input_Index > 0)
 			{
 				Num_Input = 0;
 				Point_Input = 1;
 				Temperature_Input_Point[Temperature_Input_Index	- 1] = 1;
-
 			}
 		}
 	}
@@ -129,6 +138,7 @@ void Key_Proc()
 			if((Temperature_Input_Data >= 0) && (Temperature_Input_Data <= 85) && (Num_Input == 1))
 			{
 				Seg_Dis_Mode = 1;
+				Temperature_Data = Temperature_Input_Data;
 			}else
 			{
 				Temperature_Input_Index = 0;  //重置！
@@ -144,9 +154,20 @@ void Key_Proc()
 					Temperature_Input[i] = 13;
 				}
 			}
-
 		}else
 		{
+			Temperature_Input_Index = 0;  //重置！
+			Num_Input = 0;
+			Point_Input = 0;
+			for(j=0;j<3;j++)
+			{
+				Temperature_Real [j] = 0;
+			}
+			for(i=0;i<3;i++)
+			{
+				Temperature_Input_Point[i] = 0;
+				Temperature_Input[i] = 13;
+			}
 			Seg_Dis_Mode = 0;
 		}
 	}
@@ -155,15 +176,109 @@ void Key_Proc()
 		if(Seg_Dis_Mode == 1)
 		{
 			Seg_Dis_Mode = 2;
+			Temperature_Setting_Index = 0;
+			
 		}else if(Seg_Dis_Mode == 2)
 		{
+			TMAX =	Temperature_Setting[0]*10 + Temperature_Setting[1];
+			TMIN =	Temperature_Setting[2]*10 + Temperature_Setting[3];
+			if(TMAX >= TMIN)
+			{
+				for(k = 0;k < 4;k++)
+				{
+					Temperature_Setting_Old[k] = Temperature_Setting[k];
+					Data_Error = 0;
+				}
+			}else
+			{
+				for(k = 0;k < 4;k++)
+				{
+					Temperature_Setting[k] = Temperature_Setting_Old[k];
+					Data_Error = 1;
+				}
+			}
 			Seg_Dis_Mode = 1;
+			
 		}
 	}
 	if(Key_Down == 13)
 	{
 		Temperature_Setting_Index += 2;
-		if(++Temperature_Setting_Index == 4) Temperature_Setting_Index = 0;
+		if(Temperature_Setting_Index == 4) Temperature_Setting_Index = 0;
+	}
+	if(Key_Down == 14)
+	{
+		if(Seg_Dis_Mode == 2)
+		{
+			Temperature_Setting[Temperature_Setting_Index + 1] ++;
+			if(Temperature_Setting[Temperature_Setting_Index + 1] == 10) 
+			{
+				Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+				Temperature_Setting[Temperature_Setting_Index] ++;
+			}
+			if((Temperature_Setting[Temperature_Setting_Index] == 7) && (Temperature_Setting[Temperature_Setting_Index + 1] == 1))
+			{
+				Temperature_Setting[Temperature_Setting_Index] = 7;
+				Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+			}
+		}
+	}
+	if(Key_Down == 15)
+	{
+		if(Seg_Dis_Mode == 2)
+		{
+			Temperature_Setting[Temperature_Setting_Index + 1] --;
+			if((Temperature_Setting[Temperature_Setting_Index] == 1) && (Temperature_Setting[Temperature_Setting_Index + 1] == 255))
+			{
+				Temperature_Setting[Temperature_Setting_Index] = 1;
+				Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+			}
+			if(Temperature_Setting[Temperature_Setting_Index + 1] == 255) 
+			{
+				Temperature_Setting[Temperature_Setting_Index + 1] = 9;
+				Temperature_Setting[Temperature_Setting_Index] --;
+			}
+		}
+	}
+	if(Key_Old == 14)
+	{
+		if(Seg_Dis_Mode == 2)
+		{
+			if(Key_Long0 >= 500)
+			{
+				Temperature_Setting[Temperature_Setting_Index + 1] ++;
+				if(Temperature_Setting[Temperature_Setting_Index + 1] == 10) 
+				{
+					Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+					Temperature_Setting[Temperature_Setting_Index] ++;
+				}
+				if((Temperature_Setting[Temperature_Setting_Index] == 7) && (Temperature_Setting[Temperature_Setting_Index + 1] == 1))
+				{
+					Temperature_Setting[Temperature_Setting_Index] = 7;
+					Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+				}
+			}
+		}
+	}
+	if(Key_Old == 15)
+	{
+		if(Key_Long1 >= 500)
+		{
+				if(Seg_Dis_Mode == 2)
+			{
+				Temperature_Setting[Temperature_Setting_Index + 1] --;
+				if((Temperature_Setting[Temperature_Setting_Index] == 1) && (Temperature_Setting[Temperature_Setting_Index + 1] == 255))
+				{
+					Temperature_Setting[Temperature_Setting_Index] = 1;
+					Temperature_Setting[Temperature_Setting_Index + 1] = 0;
+				}
+				if(Temperature_Setting[Temperature_Setting_Index + 1] == 255) 
+				{
+					Temperature_Setting[Temperature_Setting_Index + 1] = 9;
+					Temperature_Setting[Temperature_Setting_Index] --;
+				}
+			}
+		}
 	}
 }
 
@@ -214,8 +329,16 @@ void Seg_Proc()
 			Seg_Buf[5] = Temperature_Setting[3] ;
 		if(Flag_2)
 			{
-				Seg_Buf[Temperature_Setting_Index + 2] = 10;
-				Seg_Buf[Temperature_Setting_Index + 3] = 10;
+				if(Temperature_Setting_Index == 0 )
+				{
+					Seg_Buf[2] = 10;
+					Seg_Buf[3] = 10;
+				}
+				if(Temperature_Setting_Index == 2)	
+				{
+					Seg_Buf[4] = 10;
+					Seg_Buf[5] = 10;
+				}
 			}
 		break;
 	}
@@ -223,7 +346,38 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
+	if(Temperature_Data > TMAX) 
+	{
+		Led_Level = 3;
+		ucLed[0] = 1;
+	}else
+	{
+		ucLed[0] = 0;
+	}
 	
+	if((Temperature_Data >= TMIN) && (Temperature_Data <= TMAX)) 
+	{
+		Led_Level = 6;
+		ucLed[1] = 1;
+	}else
+	{
+		ucLed[1] = 0;
+	}
+	if(Temperature_Data < TMIN) 
+	{
+		Led_Level = 9;
+		ucLed[2] = 1;
+	}else
+	{
+		ucLed[2] = 0;
+	}
+	if(Data_Error == 1)
+	{
+		ucLed[3] = 1;
+	}else
+	{
+		ucLed[3] = 0;
+	}
 }
 
 
@@ -252,7 +406,6 @@ void Timer0Server() interrupt 1
 	if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
 	if(++Seg_Pos == 6) Seg_Pos = 0;//数码管显示专用
 	if(++Led_Pos == 8) Led_Pos = 0;//Led显示专用
-	Led_Disp(Led_Pos,ucLed[Led_Pos]);
 	Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], Seg_Point[Seg_Pos]);
 	if(++Time250 ==250)
 	{
@@ -260,13 +413,30 @@ void Timer0Server() interrupt 1
 		if(Seg_Dis_Mode == 0)	Flag_0 ^= 1;
 		if(Seg_Dis_Mode == 2) Flag_2 ^= 1;
 	}
-	
-	
-	
-		
+if(Key_Old == 14)
+{
+	Key_Long0 ++;
+}else
+{
+	Key_Long0 = 0;
+}
+if(Key_Old == 15)
+{
+	Key_Long1 ++;
+}else
+{
+	Key_Long1 = 0;
+}
+/*亮度*/
+if(++ Led_PWM == 10) Led_PWM = 0;
+	if(Led_PWM < Led_Level)
+		Led_Disp(Led_Pos,ucLed[Led_Pos]);
+	else
+		Led_Disp(Led_Pos,0);	
 
 	
 }
+
 
 /* Main */
 void main()
