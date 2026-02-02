@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 14:22:28 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 19:00:26 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -31,8 +31,8 @@ line level    source
   21          unsigned char Set_Index;//参数设置索引
   22          unsigned char TMAX = 30;//最大参数
   23          unsigned char TMIN = 20;//最小参数
-  24          unsigned char Led_Level;//Led亮度等级
-  25          unsigned char Led_PWM;//亮度调节
+  24          unsigned char Led_Level[8] = {0,0,0,0,0,0,0,0};//每个LED独立的亮度等级(0-5)
+  25          unsigned char Led_PWM_Counter[8] = {0,0,0,0,0,0,0,0};//每个LED独立的PWM计数器(0-4循环)
   26          unsigned char Error;//参数错误
   27          
   28          /* 键盘处理函数 */
@@ -62,7 +62,7 @@ line level    source
   52   4                TMIN = 20;
   53   4                Error = 1;
   54   4              }
-C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 14:22:28 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 19:00:26 PAGE 2   
 
   55   3            }
   56   2          break;
@@ -121,12 +121,12 @@ line level    source
  109   1        Seg_Slow_Down = 1;//数码管减速程序
  110   1      
  111   1        t = read_t();
- 112   1        
+ 112   1      
  113   1      
- 114   1        
+ 114   1      
  115   1        switch(Display_Mode)
  116   1        {
-C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 14:22:28 PAGE 3   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 19:00:26 PAGE 3   
 
  117   2          case 0:
  118   2            Seg_Buf[0] = 11;
@@ -151,7 +151,7 @@ line level    source
  137   2            Seg_Buf[7] = TMIN %10;
  138   2            if(Mode1_Flag)
  139   2            {
- 140   3                if(Set_Index == 0) 
+ 140   3                if(Set_Index == 0)
  141   3              {
  142   4                Seg_Buf[3] = 10;
  143   4                Seg_Buf[4] = 10;
@@ -162,8 +162,8 @@ line level    source
  148   4                Seg_Buf[7] = 10;
  149   4              }
  150   3            }
- 151   2            
- 152   2            
+ 151   2      
+ 152   2      
  153   2          break;
  154   2        }
  155   1      }
@@ -171,116 +171,130 @@ line level    source
  157          /* 其他显示函数 */
  158          void Led_Proc()
  159          {
- 160   1        if((unsigned char) t > TMAX) 
- 161   1        {
- 162   2          Led_Level = 3;
- 163   2          ucLed[0] = 1;
- 164   2        }else
- 165   1        {
- 166   2          ucLed[0] = 0;
- 167   2        }
- 168   1        if((unsigned char) t < TMIN) 
- 169   1        {
- 170   2          Led_Level = 9;
- 171   2          ucLed[2] = 1;
- 172   2        }else
- 173   1        {
- 174   2          ucLed[2] = 0;
- 175   2        }
- 176   1        if(((unsigned char) t <= TMAX) && ((unsigned char) t >= TMIN)) 
- 177   1        {
- 178   2          Led_Level = 6;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 14:22:28 PAGE 4   
+ 160   1      //  if((unsigned char) t > TMAX)
+ 161   1      //  {
+ 162   1      //    Led_Level[0] = 1;  // LED1亮度等级1 (20%占空比 - 超温微亮提示)
+ 163   1      //    ucLed[0] = 1;
+ 164   1      //  }else
+ 165   1      //  {
+ 166   1      //    ucLed[0] = 0;
+ 167   1      //  }
+ 168   1      //  if((unsigned char) t < TMIN)
+ 169   1      //  {
+ 170   1      //    Led_Level[2] = 4;  // LED3亮度等级4 (80%占空比 - 低温高亮警告)
+ 171   1      //    ucLed[2] = 1;
+ 172   1      //  }else
+ 173   1      //  {
+ 174   1      //    ucLed[2] = 0;
+ 175   1      //  }
+ 176   1      //  if(((unsigned char) t <= TMAX) && ((unsigned char) t >= TMIN))
+ 177   1      //  {
+ 178   1      //    Led_Level[1] = 2;  // LED2亮度等级2 (40%占空比 - 正常中等亮度)
+C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 19:00:26 PAGE 4   
 
- 179   2          ucLed[1] = 1;
- 180   2        }else
- 181   1        {
- 182   2          ucLed[1] = 0;
- 183   2        }
- 184   1        if(Error)
- 185   1        {
- 186   2          ucLed[3] = 1;
- 187   2        }else
- 188   1        {
- 189   2          ucLed[3] = 0;
- 190   2        }
- 191   1      }
- 192          
- 193          /* 定时器0中断初始化函数 */
- 194          void Timer0Init(void)   //1毫秒@12.000MHz
- 195          {
- 196   1        AUXR &= 0x7F;   //定时器时钟12T模式
- 197   1        TMOD &= 0xF0;   //设置定时器模式
- 198   1        TL0 = 0x18;   //设置定时初始值
- 199   1        TH0 = 0xFC;   //设置定时初始值
- 200   1        TF0 = 0;    //清除TF0标志
- 201   1        TR0 = 1;    //定时器0开始计时
- 202   1        ET0 = 1;    //定时器中断0打开
- 203   1        EA = 1;     //总中断打开
- 204   1      }
- 205          
- 206          /* 定时器0中断服务函数 */
- 207          void Timer0Server() interrupt 1
- 208          {  
- 209   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 210   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 211   1        if(++Seg_Pos == 8) Seg_Pos = 0;//数码管显示专用
- 212   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
- 213   1        
- 214   1        if(Display_Mode == 1)
- 215   1        {
- 216   2            if(++Tick == 250) 
- 217   2          {
- 218   3            Tick = 0;
- 219   3            Mode1_Flag ^= 1;
- 220   3          }
- 221   2        }
- 222   1        
- 223   1        if(++ Led_PWM == 10) Led_PWM = 0;
- 224   1        if(Led_PWM < Led_Level)
- 225   1          Led_Disp(Seg_Pos,ucLed[Seg_Pos]);
- 226   1        else
- 227   1          Led_Disp(Seg_Pos,0);
- 228   1      }
- 229          void Delay750ms()   //@12.000MHz
- 230          {
- 231   1        unsigned char i, j, k;
- 232   1        i = 35;
- 233   1        j = 51;
- 234   1        k = 182;
- 235   1        do
- 236   1        {
- 237   2          do
- 238   2          {
- 239   3            while (--k);
- 240   3          } while (--j);
-C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 14:22:28 PAGE 5   
+ 179   1      //    ucLed[1] = 1;
+ 180   1      //  }else
+ 181   1      //  {
+ 182   1      //    ucLed[1] = 0;
+ 183   1      //  }
+ 184   1      //  if(Error)
+ 185   1      //  {
+ 186   1      //    Led_Level[3] = 5;  // LED4亮度等级5 (100%全亮 - 错误刺眼告警)
+ 187   1      //    ucLed[3] = 1;
+ 188   1      //  }else
+ 189   1      //  {
+ 190   1      //    ucLed[3] = 0;
+ 191   1      //  }
+ 192   1      }
+ 193          
+ 194          /* 定时器0中断初始化函数 */
+ 195          void Timer0Init(void)   //1毫秒@12.000MHz
+ 196          {
+ 197   1        AUXR &= 0x7F;   //定时器时钟12T模式
+ 198   1        TMOD &= 0xF0;   //设置定时器模式
+ 199   1        TL0 = 0x18;   //设置定时初始值
+ 200   1        TH0 = 0xFC;   //设置定时初始值
+ 201   1        TF0 = 0;    //清除TF0标志
+ 202   1        TR0 = 1;    //定时器0开始计时
+ 203   1        ET0 = 1;    //定时器中断0打开
+ 204   1        EA = 1;     //总中断打开
+ 205   1      }
+ 206          
+ 207          /* 定时器0中断服务函数 */
+ 208          void Timer0Server() interrupt 1
+ 209          {  
+ 210   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 211   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 212   1        if(++Seg_Pos == 8) Seg_Pos = 0;//数码管显示专用
+ 213   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
+ 214   1        
+ 215   1        if(Display_Mode == 1)
+ 216   1        {
+ 217   2            if(++Tick == 250)
+ 218   2          {
+ 219   3            Tick = 0;
+ 220   3            Mode1_Flag ^= 1;
+ 221   3          }
+ 222   2        }
+ 223   1      
+ 224   1      //  // LED独立PWM控制 - 同时处理所有LED(静态显示模式)
+ 225   1      //  // PWM周期5ms, 频率200Hz, 5级亮度调节(0-5)
+ 226   1      //  {
+ 227   1      //    unsigned char i;
+ 228   1      //    // 更新所有LED的PWM计数器 (0-4循环，周期5ms)
+ 229   1      //    for(i = 0; i < 8; i++)
+ 230   1      //    {
+ 231   1      //      if(++Led_PWM_Counter[i] == 5)
+ 232   1      //        Led_PWM_Counter[i] = 0;
+ 233   1      
+ 234   1      //      // 根据PWM占空比决定该LED状态
+ 235   1      //      // Led_Level范围0-5: 0=关闭, 1=20%, 2=40%, 3=60%, 4=80%, 5=100%
+ 236   1      //      if(Led_PWM_Counter[i] < Led_Level[i] && ucLed[i])
+ 237   1      //        Led_Disp(i, 1);
+ 238   1      //      else
+ 239   1      //        Led_Disp(i, 0);
+ 240   1      //    }
+C51 COMPILER V9.59.0.0   MAIN                                                              02/02/2026 19:00:26 PAGE 5   
 
- 241   2        } while (--i);
+ 241   1      //  }
  242   1      }
- 243          
- 244          /* Main */
- 245          void main()
- 246          {
- 247   1        read_t();
- 248   1        Delay750ms();
- 249   1        System_Init();
- 250   1        Timer0Init();
- 251   1        while (1)
- 252   1        {
- 253   2          Key_Proc();
- 254   2          Seg_Proc();
- 255   2          Led_Proc();
- 256   2        }
- 257   1      }
+ 243          void Delay750ms()   //@12.000MHz
+ 244          {
+ 245   1        unsigned char i, j, k;
+ 246   1        i = 35;
+ 247   1        j = 51;
+ 248   1        k = 182;
+ 249   1        do
+ 250   1        {
+ 251   2          do
+ 252   2          {
+ 253   3            while (--k);
+ 254   3          } while (--j);
+ 255   2        } while (--i);
+ 256   1      }
+ 257          
+ 258          /* Main */
+ 259          void main()
+ 260          {
+ 261   1        read_t();
+ 262   1        Delay750ms();
+ 263   1        System_Init();
+ 264   1        Timer0Init();
+ 265   1        while (1)
+ 266   1        {
+ 267   2          Key_Proc();
+ 268   2          Seg_Proc();
+ 269   2          Led_Proc();
+ 270   2        }
+ 271   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    730    ----
+   CODE SIZE        =    615    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     45    ----
+   DATA SIZE        =     59    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
