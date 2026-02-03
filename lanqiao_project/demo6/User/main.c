@@ -21,9 +21,10 @@ unsigned int Tick;//计时变量
 unsigned char Set_Index;//参数设置索引
 unsigned char TMAX = 30;//最大参数
 unsigned char TMIN = 20;//最小参数
-unsigned char Led_Level[8] = {0,0,0,0,0,0,0,0};//每个LED独立的亮度等级(0-5)
-unsigned char Led_PWM_Counter[8] = {0,0,0,0,0,0,0,0};//每个LED独立的PWM计数器(0-4循环)
+unsigned char P_DIS[2] = {30,20};//显示数组
 unsigned char Error;//参数错误
+unsigned int Key_Long;
+unsigned int Delay100ms;
 
 /* 键盘处理函数 */
 void Key_Proc()
@@ -41,13 +42,17 @@ void Key_Proc()
 			Display_Mode ++;
 			if(Display_Mode == 2) 
 			{
-				if(TMAX > TMIN)
+				if(P_DIS[0] > P_DIS[1])
 				{
+					TMAX = P_DIS[0];
+					TMIN = P_DIS[1];
 					Display_Mode = 0;
 					Error = 0;
 				}else
 				{
 					Display_Mode = 0;
+					P_DIS[0] = 30;
+					P_DIS[1] = 20;
 					TMAX = 30;
 					TMIN = 20;
 					Error = 1;
@@ -67,12 +72,12 @@ void Key_Proc()
 				switch(Set_Index)
 				{
 					case 0:
-						TMAX ++;
-					if(TMAX >= 70) TMAX = 70;
+						P_DIS[0] ++;
+					if(P_DIS[0] >= 70) P_DIS[0] = 70;
 					break;
 					case 1:
-						TMIN ++;
-					if(TMIN >= 70) TMIN = 70;
+						P_DIS[1] ++;
+					if(P_DIS[1] >= 70) P_DIS[1] = 70;
 					break;
 				}
 			}
@@ -83,12 +88,12 @@ void Key_Proc()
 				switch(Set_Index)
 				{
 					case 0:
-						TMAX --;
-					if(TMAX <= 10) TMAX = 10;
+						P_DIS[0] --;
+					if(P_DIS[0] <= 10) P_DIS[0] = 10;
 					break;
 					case 1:
-						TMIN --;
-					if(TMIN <= 10) TMIN = 10;
+						P_DIS[1] --;
+					if(P_DIS[1] <= 10) P_DIS[1] = 10;
 					break;
 				}
 			}
@@ -96,10 +101,61 @@ void Key_Proc()
 		case 16:
 			TMIN = 20;
 			TMAX = 30;
+			P_DIS[0] = 30;
+			P_DIS[1] = 20;
 			Display_Mode = 0;
 		break;
 	}
 
+	switch(Key_Old)
+		{
+			case 14:
+			if(Key_Long >= 250)
+			{
+				if(++Delay100ms >= 5)
+				{
+					Delay100ms = 0;
+						if(Display_Mode == 1)
+					{	
+						switch(Set_Index)
+						{
+							case 0:
+								P_DIS[0] ++;
+								if(P_DIS[0] >= 70) P_DIS[0] = 70;
+							break;
+							case 1:
+								P_DIS[1] ++;
+								if(P_DIS[1] >= 70) P_DIS[1] = 70;
+							break;
+						}
+					}
+				}
+			}
+			break;
+			case 15:
+			if(Key_Long >= 250)
+			{
+				if(++Delay100ms >= 5)
+				{
+					Delay100ms = 0;
+					if(Display_Mode == 1)
+					{
+						switch(Set_Index)
+						{
+							case 0:
+								P_DIS[0] --;
+								if(P_DIS[0] <= 10) P_DIS[0] = 10;
+							break;
+							case 1:
+								P_DIS[1] --;
+								if(P_DIS[1] <= 10) P_DIS[1] = 10;
+							break;
+						}
+					}
+				}
+			}
+			break;
+	}
 }
 
 /* 信息处理函数 */
@@ -129,12 +185,12 @@ void Seg_Proc()
 			Seg_Buf[0] = 12;
 			Seg_Buf[1] = 10;
 			Seg_Buf[2] = 10;
-			Seg_Buf[3] = TMAX /10;
-			Seg_Buf[4] = TMAX %10;
+			Seg_Buf[3] = P_DIS[0] /10;
+			Seg_Buf[4] = P_DIS[0] %10;
 			Seg_Buf[5] = 13;
 			Seg_Point[5] = 0;
-			Seg_Buf[6] = TMIN /10;
-			Seg_Buf[7] = TMIN %10;
+			Seg_Buf[6] = P_DIS[1] /10;
+			Seg_Buf[7] = P_DIS[1] %10;
 			if(Mode1_Flag)
 			{
 					if(Set_Index == 0)
@@ -157,38 +213,7 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-//	if((unsigned char) t > TMAX)
-//	{
-//		Led_Level[0] = 1;  // LED1亮度等级1 (20%占空比 - 超温微亮提示)
-//		ucLed[0] = 1;
-//	}else
-//	{
-//		ucLed[0] = 0;
-//	}
-//	if((unsigned char) t < TMIN)
-//	{
-//		Led_Level[2] = 4;  // LED3亮度等级4 (80%占空比 - 低温高亮警告)
-//		ucLed[2] = 1;
-//	}else
-//	{
-//		ucLed[2] = 0;
-//	}
-//	if(((unsigned char) t <= TMAX) && ((unsigned char) t >= TMIN))
-//	{
-//		Led_Level[1] = 2;  // LED2亮度等级2 (40%占空比 - 正常中等亮度)
-//		ucLed[1] = 1;
-//	}else
-//	{
-//		ucLed[1] = 0;
-//	}
-//	if(Error)
-//	{
-//		Led_Level[3] = 5;  // LED4亮度等级5 (100%全亮 - 错误刺眼告警)
-//		ucLed[3] = 1;
-//	}else
-//	{
-//		ucLed[3] = 0;
-//	}
+
 }
 
 /* 定时器0中断初始化函数 */
@@ -220,25 +245,15 @@ void Timer0Server() interrupt 1
 			Mode1_Flag ^= 1;
 		}
 	}
+	if((Key_Old == 14) || (Key_Old == 15))
+	{
+		if(++Key_Long == 65535) Key_Long = 0;
+	}else
+	{
+		Key_Long = 0;
+	}
 
-//	// LED独立PWM控制 - 同时处理所有LED(静态显示模式)
-//	// PWM周期5ms, 频率200Hz, 5级亮度调节(0-5)
-//	{
-//		unsigned char i;
-//		// 更新所有LED的PWM计数器 (0-4循环，周期5ms)
-//		for(i = 0; i < 8; i++)
-//		{
-//			if(++Led_PWM_Counter[i] == 5)
-//				Led_PWM_Counter[i] = 0;
 
-//			// 根据PWM占空比决定该LED状态
-//			// Led_Level范围0-5: 0=关闭, 1=20%, 2=40%, 3=60%, 4=80%, 5=100%
-//			if(Led_PWM_Counter[i] < Led_Level[i] && ucLed[i])
-//				Led_Disp(i, 1);
-//			else
-//				Led_Disp(i, 0);
-//		}
-//	}
 }
 void Delay750ms()		//@12.000MHz
 {
