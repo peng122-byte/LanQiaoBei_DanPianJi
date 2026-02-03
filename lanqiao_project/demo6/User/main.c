@@ -25,6 +25,8 @@ unsigned char P_DIS[2] = {30,20};//显示数组
 unsigned char Error;//参数错误
 unsigned int Key_Long;
 unsigned int Delay100ms;
+unsigned char Led_Pwm;
+unsigned char Led_Level;
 
 /* 键盘处理函数 */
 void Key_Proc()
@@ -213,7 +215,35 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
+	if(((unsigned char)t >= TMAX))
+	{
+		ucLed[0] = 1;
+		Led_Level = 3;
+	}else
+	{
+		ucLed[0] = 0;
+	}
+	
+	if((TMIN <= (unsigned char)t) && (TMAX >= (unsigned char)t))
+	{
+		Led_Level = 6;
+		ucLed[1] = 1;
+	}else 
+	{
+		ucLed[1] = 0;
+	}
 
+	if(((unsigned char)t <= TMIN))
+	{
+		ucLed[2] = 1;
+		Led_Level = 9;
+	}else
+	{
+		ucLed[2] = 0;
+	}
+	
+	if(Error) ucLed[3] = 1;
+		else	ucLed[3] = 0;
 }
 
 /* 定时器0中断初始化函数 */
@@ -252,7 +282,11 @@ void Timer0Server() interrupt 1
 	{
 		Key_Long = 0;
 	}
-
+	if(++Led_Pwm == 12) Led_Pwm = 12;
+	if(Led_Pwm < Led_Level)
+		Led_Disp(Seg_Pos,ucLed[Seg_Pos]);
+	else
+		Led_Disp(Seg_Pos,0);
 
 }
 void Delay750ms()		//@12.000MHz

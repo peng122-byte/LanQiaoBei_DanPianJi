@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 14:44:51 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -35,281 +35,317 @@ line level    source
   25          unsigned char Error;//参数错误
   26          unsigned int Key_Long;
   27          unsigned int Delay100ms;
-  28          
-  29          /* 键盘处理函数 */
-  30          void Key_Proc()
-  31          {
-  32   1        if(Key_Slow_Down) return;
-  33   1        Key_Slow_Down = 1;//键盘减速程序
-  34   1      
-  35   1        Key_Val = Key_Read();//实时读取键码值
-  36   1        Key_Down = Key_Val & (Key_Old ^ Key_Val);//捕捉按键下降沿
-  37   1        Key_Up = ~Key_Val & (Key_Old ^ Key_Val);//捕捉按键上降沿
-  38   1        Key_Old = Key_Val;//辅助扫描变量
-  39   1        switch(Key_Down)
-  40   1        {
-  41   2          case 12:
-  42   2            Display_Mode ++;
-  43   2            if(Display_Mode == 2) 
-  44   2            {
-  45   3              if(P_DIS[0] > P_DIS[1])
-  46   3              {
-  47   4                TMAX = P_DIS[0];
-  48   4                TMIN = P_DIS[1];
-  49   4                Display_Mode = 0;
-  50   4                Error = 0;
-  51   4              }else
-  52   3              {
-  53   4                Display_Mode = 0;
-  54   4                P_DIS[0] = 30;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 14:44:51 PAGE 2   
+  28          unsigned char Led_Pwm;
+  29          unsigned char Led_Level;
+  30          
+  31          /* 键盘处理函数 */
+  32          void Key_Proc()
+  33          {
+  34   1        if(Key_Slow_Down) return;
+  35   1        Key_Slow_Down = 1;//键盘减速程序
+  36   1      
+  37   1        Key_Val = Key_Read();//实时读取键码值
+  38   1        Key_Down = Key_Val & (Key_Old ^ Key_Val);//捕捉按键下降沿
+  39   1        Key_Up = ~Key_Val & (Key_Old ^ Key_Val);//捕捉按键上降沿
+  40   1        Key_Old = Key_Val;//辅助扫描变量
+  41   1        switch(Key_Down)
+  42   1        {
+  43   2          case 12:
+  44   2            Display_Mode ++;
+  45   2            if(Display_Mode == 2) 
+  46   2            {
+  47   3              if(P_DIS[0] > P_DIS[1])
+  48   3              {
+  49   4                TMAX = P_DIS[0];
+  50   4                TMIN = P_DIS[1];
+  51   4                Display_Mode = 0;
+  52   4                Error = 0;
+  53   4              }else
+  54   3              {
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 2   
 
-  55   4                P_DIS[1] = 20;
-  56   4                TMAX = 30;
-  57   4                TMIN = 20;
-  58   4                Error = 1;
-  59   4              }
-  60   3            }
-  61   2          break;
-  62   2          case 13:
-  63   2            if(Display_Mode == 1)
-  64   2            {
-  65   3              Set_Index ++;
-  66   3              if(Set_Index == 2) Set_Index = 0;
-  67   3            }
-  68   2          break;
-  69   2          case 14:
-  70   2            if(Display_Mode == 1)
-  71   2            {
-  72   3              switch(Set_Index)
-  73   3              {
-  74   4                case 0:
-  75   4                  P_DIS[0] ++;
-  76   4                if(P_DIS[0] >= 70) P_DIS[0] = 70;
-  77   4                break;
-  78   4                case 1:
-  79   4                  P_DIS[1] ++;
-  80   4                if(P_DIS[1] >= 70) P_DIS[1] = 70;
-  81   4                break;
-  82   4              }
-  83   3            }
-  84   2          break;
-  85   2          case 15:
-  86   2            if(Display_Mode == 1)
-  87   2            {
-  88   3              switch(Set_Index)
-  89   3              {
-  90   4                case 0:
-  91   4                  P_DIS[0] --;
-  92   4                if(P_DIS[0] <= 10) P_DIS[0] = 10;
-  93   4                break;
-  94   4                case 1:
-  95   4                  P_DIS[1] --;
-  96   4                if(P_DIS[1] <= 10) P_DIS[1] = 10;
-  97   4                break;
-  98   4              }
-  99   3            }
- 100   2          break;
- 101   2          case 16:
- 102   2            TMIN = 20;
- 103   2            TMAX = 30;
- 104   2            P_DIS[0] = 30;
- 105   2            P_DIS[1] = 20;
- 106   2            Display_Mode = 0;
- 107   2          break;
- 108   2        }
- 109   1      
- 110   1        switch(Key_Old)
- 111   1          {
- 112   2            case 14:
- 113   2            if(Key_Long >= 250)
- 114   2            {
- 115   3              if(++Delay100ms >= 5)
- 116   3              {
-C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 14:44:51 PAGE 3   
+  55   4                Display_Mode = 0;
+  56   4                P_DIS[0] = 30;
+  57   4                P_DIS[1] = 20;
+  58   4                TMAX = 30;
+  59   4                TMIN = 20;
+  60   4                Error = 1;
+  61   4              }
+  62   3            }
+  63   2          break;
+  64   2          case 13:
+  65   2            if(Display_Mode == 1)
+  66   2            {
+  67   3              Set_Index ++;
+  68   3              if(Set_Index == 2) Set_Index = 0;
+  69   3            }
+  70   2          break;
+  71   2          case 14:
+  72   2            if(Display_Mode == 1)
+  73   2            {
+  74   3              switch(Set_Index)
+  75   3              {
+  76   4                case 0:
+  77   4                  P_DIS[0] ++;
+  78   4                if(P_DIS[0] >= 70) P_DIS[0] = 70;
+  79   4                break;
+  80   4                case 1:
+  81   4                  P_DIS[1] ++;
+  82   4                if(P_DIS[1] >= 70) P_DIS[1] = 70;
+  83   4                break;
+  84   4              }
+  85   3            }
+  86   2          break;
+  87   2          case 15:
+  88   2            if(Display_Mode == 1)
+  89   2            {
+  90   3              switch(Set_Index)
+  91   3              {
+  92   4                case 0:
+  93   4                  P_DIS[0] --;
+  94   4                if(P_DIS[0] <= 10) P_DIS[0] = 10;
+  95   4                break;
+  96   4                case 1:
+  97   4                  P_DIS[1] --;
+  98   4                if(P_DIS[1] <= 10) P_DIS[1] = 10;
+  99   4                break;
+ 100   4              }
+ 101   3            }
+ 102   2          break;
+ 103   2          case 16:
+ 104   2            TMIN = 20;
+ 105   2            TMAX = 30;
+ 106   2            P_DIS[0] = 30;
+ 107   2            P_DIS[1] = 20;
+ 108   2            Display_Mode = 0;
+ 109   2          break;
+ 110   2        }
+ 111   1      
+ 112   1        switch(Key_Old)
+ 113   1          {
+ 114   2            case 14:
+ 115   2            if(Key_Long >= 250)
+ 116   2            {
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 3   
 
- 117   4                Delay100ms = 0;
- 118   4                  if(Display_Mode == 1)
- 119   4                { 
- 120   5                  switch(Set_Index)
- 121   5                  {
- 122   6                    case 0:
- 123   6                      P_DIS[0] ++;
- 124   6                      if(P_DIS[0] >= 70) P_DIS[0] = 70;
- 125   6                    break;
- 126   6                    case 1:
- 127   6                      P_DIS[1] ++;
- 128   6                      if(P_DIS[1] >= 70) P_DIS[1] = 70;
- 129   6                    break;
- 130   6                  }
- 131   5                }
- 132   4              }
- 133   3            }
- 134   2            break;
- 135   2            case 15:
- 136   2            if(Key_Long >= 250)
- 137   2            {
- 138   3              if(++Delay100ms >= 5)
- 139   3              {
- 140   4                Delay100ms = 0;
- 141   4                if(Display_Mode == 1)
- 142   4                {
- 143   5                  switch(Set_Index)
- 144   5                  {
- 145   6                    case 0:
- 146   6                      P_DIS[0] --;
- 147   6                      if(P_DIS[0] <= 10) P_DIS[0] = 10;
- 148   6                    break;
- 149   6                    case 1:
- 150   6                      P_DIS[1] --;
- 151   6                      if(P_DIS[1] <= 10) P_DIS[1] = 10;
- 152   6                    break;
- 153   6                  }
- 154   5                }
- 155   4              }
- 156   3            }
- 157   2            break;
- 158   2        }
- 159   1      }
- 160          
- 161          /* 信息处理函数 */
- 162          void Seg_Proc()
- 163          {
- 164   1        if(Seg_Slow_Down) return;
- 165   1        Seg_Slow_Down = 1;//数码管减速程序
- 166   1      
- 167   1        t = read_t();
+ 117   3              if(++Delay100ms >= 5)
+ 118   3              {
+ 119   4                Delay100ms = 0;
+ 120   4                  if(Display_Mode == 1)
+ 121   4                { 
+ 122   5                  switch(Set_Index)
+ 123   5                  {
+ 124   6                    case 0:
+ 125   6                      P_DIS[0] ++;
+ 126   6                      if(P_DIS[0] >= 70) P_DIS[0] = 70;
+ 127   6                    break;
+ 128   6                    case 1:
+ 129   6                      P_DIS[1] ++;
+ 130   6                      if(P_DIS[1] >= 70) P_DIS[1] = 70;
+ 131   6                    break;
+ 132   6                  }
+ 133   5                }
+ 134   4              }
+ 135   3            }
+ 136   2            break;
+ 137   2            case 15:
+ 138   2            if(Key_Long >= 250)
+ 139   2            {
+ 140   3              if(++Delay100ms >= 5)
+ 141   3              {
+ 142   4                Delay100ms = 0;
+ 143   4                if(Display_Mode == 1)
+ 144   4                {
+ 145   5                  switch(Set_Index)
+ 146   5                  {
+ 147   6                    case 0:
+ 148   6                      P_DIS[0] --;
+ 149   6                      if(P_DIS[0] <= 10) P_DIS[0] = 10;
+ 150   6                    break;
+ 151   6                    case 1:
+ 152   6                      P_DIS[1] --;
+ 153   6                      if(P_DIS[1] <= 10) P_DIS[1] = 10;
+ 154   6                    break;
+ 155   6                  }
+ 156   5                }
+ 157   4              }
+ 158   3            }
+ 159   2            break;
+ 160   2        }
+ 161   1      }
+ 162          
+ 163          /* 信息处理函数 */
+ 164          void Seg_Proc()
+ 165          {
+ 166   1        if(Seg_Slow_Down) return;
+ 167   1        Seg_Slow_Down = 1;//数码管减速程序
  168   1      
- 169   1      
+ 169   1        t = read_t();
  170   1      
- 171   1        switch(Display_Mode)
- 172   1        {
- 173   2          case 0:
- 174   2            Seg_Buf[0] = 11;
- 175   2            Seg_Buf[1] = 10;
- 176   2            Seg_Buf[2] = 10;
- 177   2            Seg_Buf[3] = 10;
- 178   2            Seg_Buf[4] = (unsigned char)t / 10 % 10;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 14:44:51 PAGE 4   
+ 171   1      
+ 172   1      
+ 173   1        switch(Display_Mode)
+ 174   1        {
+ 175   2          case 0:
+ 176   2            Seg_Buf[0] = 11;
+ 177   2            Seg_Buf[1] = 10;
+ 178   2            Seg_Buf[2] = 10;
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 4   
 
- 179   2            Seg_Buf[5] = (unsigned char)t % 10;
- 180   2            Seg_Point[5] = 1;
- 181   2            Seg_Buf[6] = (unsigned int)(t * 10) % 10;
- 182   2            Seg_Buf[7] = 11;
- 183   2          break;
- 184   2          case 1:
- 185   2            Seg_Buf[0] = 12;
- 186   2            Seg_Buf[1] = 10;
- 187   2            Seg_Buf[2] = 10;
- 188   2            Seg_Buf[3] = P_DIS[0] /10;
- 189   2            Seg_Buf[4] = P_DIS[0] %10;
- 190   2            Seg_Buf[5] = 13;
- 191   2            Seg_Point[5] = 0;
- 192   2            Seg_Buf[6] = P_DIS[1] /10;
- 193   2            Seg_Buf[7] = P_DIS[1] %10;
- 194   2            if(Mode1_Flag)
- 195   2            {
- 196   3                if(Set_Index == 0)
- 197   3              {
- 198   4                Seg_Buf[3] = 10;
- 199   4                Seg_Buf[4] = 10;
- 200   4              }
- 201   3              if(Set_Index == 1)
- 202   3              {
- 203   4                Seg_Buf[6] = 10;
- 204   4                Seg_Buf[7] = 10;
- 205   4              }
- 206   3            }
- 207   2      
- 208   2      
- 209   2          break;
- 210   2        }
- 211   1      }
- 212          
- 213          /* 其他显示函数 */
- 214          void Led_Proc()
- 215          {
- 216   1      
- 217   1      }
- 218          
- 219          /* 定时器0中断初始化函数 */
- 220          void Timer0Init(void)   //1毫秒@12.000MHz
- 221          {
- 222   1        AUXR &= 0x7F;   //定时器时钟12T模式
- 223   1        TMOD &= 0xF0;   //设置定时器模式
- 224   1        TL0 = 0x18;   //设置定时初始值
- 225   1        TH0 = 0xFC;   //设置定时初始值
- 226   1        TF0 = 0;    //清除TF0标志
- 227   1        TR0 = 1;    //定时器0开始计时
- 228   1        ET0 = 1;    //定时器中断0打开
- 229   1        EA = 1;     //总中断打开
- 230   1      }
- 231          
- 232          /* 定时器0中断服务函数 */
- 233          void Timer0Server() interrupt 1
- 234          {  
- 235   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
- 236   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
- 237   1        if(++Seg_Pos == 8) Seg_Pos = 0;//数码管显示专用
- 238   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
- 239   1        
- 240   1        if(Display_Mode == 1)
-C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 14:44:51 PAGE 5   
+ 179   2            Seg_Buf[3] = 10;
+ 180   2            Seg_Buf[4] = (unsigned char)t / 10 % 10;
+ 181   2            Seg_Buf[5] = (unsigned char)t % 10;
+ 182   2            Seg_Point[5] = 1;
+ 183   2            Seg_Buf[6] = (unsigned int)(t * 10) % 10;
+ 184   2            Seg_Buf[7] = 11;
+ 185   2          break;
+ 186   2          case 1:
+ 187   2            Seg_Buf[0] = 12;
+ 188   2            Seg_Buf[1] = 10;
+ 189   2            Seg_Buf[2] = 10;
+ 190   2            Seg_Buf[3] = P_DIS[0] /10;
+ 191   2            Seg_Buf[4] = P_DIS[0] %10;
+ 192   2            Seg_Buf[5] = 13;
+ 193   2            Seg_Point[5] = 0;
+ 194   2            Seg_Buf[6] = P_DIS[1] /10;
+ 195   2            Seg_Buf[7] = P_DIS[1] %10;
+ 196   2            if(Mode1_Flag)
+ 197   2            {
+ 198   3                if(Set_Index == 0)
+ 199   3              {
+ 200   4                Seg_Buf[3] = 10;
+ 201   4                Seg_Buf[4] = 10;
+ 202   4              }
+ 203   3              if(Set_Index == 1)
+ 204   3              {
+ 205   4                Seg_Buf[6] = 10;
+ 206   4                Seg_Buf[7] = 10;
+ 207   4              }
+ 208   3            }
+ 209   2      
+ 210   2      
+ 211   2          break;
+ 212   2        }
+ 213   1      }
+ 214          
+ 215          /* 其他显示函数 */
+ 216          void Led_Proc()
+ 217          {
+ 218   1        if(((unsigned char)t >= TMAX))
+ 219   1        {
+ 220   2          ucLed[0] = 1;
+ 221   2          Led_Level = 3;
+ 222   2        }else
+ 223   1        {
+ 224   2          ucLed[0] = 0;
+ 225   2        }
+ 226   1        
+ 227   1        if((TMIN <= (unsigned char)t) && (TMAX >= (unsigned char)t))
+ 228   1        {
+ 229   2          Led_Level = 6;
+ 230   2          ucLed[1] = 1;
+ 231   2        }else 
+ 232   1        {
+ 233   2          ucLed[1] = 0;
+ 234   2        }
+ 235   1      
+ 236   1        if(((unsigned char)t <= TMIN))
+ 237   1        {
+ 238   2          ucLed[2] = 1;
+ 239   2          Led_Level = 9;
+ 240   2        }else
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 5   
 
  241   1        {
- 242   2            if(++Tick == 250)
- 243   2          {
- 244   3            Tick = 0;
- 245   3            Mode1_Flag ^= 1;
- 246   3          }
- 247   2        }
- 248   1        if((Key_Old == 14) || (Key_Old == 15))
- 249   1        {
- 250   2          if(++Key_Long == 65535) Key_Long = 0;
- 251   2        }else
- 252   1        {
- 253   2          Key_Long = 0;
- 254   2        }
- 255   1      
- 256   1      
- 257   1      }
- 258          void Delay750ms()   //@12.000MHz
- 259          {
- 260   1        unsigned char i, j, k;
- 261   1        i = 35;
- 262   1        j = 51;
- 263   1        k = 182;
- 264   1        do
- 265   1        {
- 266   2          do
- 267   2          {
- 268   3            while (--k);
- 269   3          } while (--j);
- 270   2        } while (--i);
- 271   1      }
- 272          
- 273          /* Main */
- 274          void main()
- 275          {
- 276   1        read_t();
- 277   1        Delay750ms();
- 278   1        System_Init();
- 279   1        Timer0Init();
- 280   1        while (1)
- 281   1        {
- 282   2          Key_Proc();
- 283   2          Seg_Proc();
- 284   2          Led_Proc();
- 285   2        }
- 286   1      }
+ 242   2          ucLed[2] = 0;
+ 243   2        }
+ 244   1        
+ 245   1        if(Error) ucLed[3] = 1;
+ 246   1          else  ucLed[3] = 0;
+ 247   1      }
+ 248          
+ 249          /* 定时器0中断初始化函数 */
+ 250          void Timer0Init(void)   //1毫秒@12.000MHz
+ 251          {
+ 252   1        AUXR &= 0x7F;   //定时器时钟12T模式
+ 253   1        TMOD &= 0xF0;   //设置定时器模式
+ 254   1        TL0 = 0x18;   //设置定时初始值
+ 255   1        TH0 = 0xFC;   //设置定时初始值
+ 256   1        TF0 = 0;    //清除TF0标志
+ 257   1        TR0 = 1;    //定时器0开始计时
+ 258   1        ET0 = 1;    //定时器中断0打开
+ 259   1        EA = 1;     //总中断打开
+ 260   1      }
+ 261          
+ 262          /* 定时器0中断服务函数 */
+ 263          void Timer0Server() interrupt 1
+ 264          {  
+ 265   1        if(++Key_Slow_Down == 10) Key_Slow_Down = 0;//键盘减速专用
+ 266   1        if(++Seg_Slow_Down == 50) Seg_Slow_Down = 0;//数码管减速专用
+ 267   1        if(++Seg_Pos == 8) Seg_Pos = 0;//数码管显示专用
+ 268   1        Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],Seg_Point[Seg_Pos]);
+ 269   1        
+ 270   1        if(Display_Mode == 1)
+ 271   1        {
+ 272   2            if(++Tick == 250)
+ 273   2          {
+ 274   3            Tick = 0;
+ 275   3            Mode1_Flag ^= 1;
+ 276   3          }
+ 277   2        }
+ 278   1        if((Key_Old == 14) || (Key_Old == 15))
+ 279   1        {
+ 280   2          if(++Key_Long == 65535) Key_Long = 0;
+ 281   2        }else
+ 282   1        {
+ 283   2          Key_Long = 0;
+ 284   2        }
+ 285   1        if(++Led_Pwm == 12) Led_Pwm = 12;
+ 286   1        if(Led_Pwm < Led_Level)
+ 287   1          Led_Disp(Seg_Pos,ucLed[Seg_Pos]);
+ 288   1        else
+ 289   1          Led_Disp(Seg_Pos,0);
+ 290   1      
+ 291   1      }
+ 292          void Delay750ms()   //@12.000MHz
+ 293          {
+ 294   1        unsigned char i, j, k;
+ 295   1        i = 35;
+ 296   1        j = 51;
+ 297   1        k = 182;
+ 298   1        do
+ 299   1        {
+ 300   2          do
+ 301   2          {
+ 302   3            while (--k);
+C51 COMPILER V9.59.0.0   MAIN                                                              02/03/2026 15:08:24 PAGE 6   
+
+ 303   3          } while (--j);
+ 304   2        } while (--i);
+ 305   1      }
+ 306          
+ 307          /* Main */
+ 308          void main()
+ 309          {
+ 310   1        read_t();
+ 311   1        Delay750ms();
+ 312   1        System_Init();
+ 313   1        Timer0Init();
+ 314   1        while (1)
+ 315   1        {
+ 316   2          Key_Proc();
+ 317   2          Seg_Proc();
+ 318   2          Led_Proc();
+ 319   2        }
+ 320   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    876    ----
+   CODE SIZE        =    992    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     49    ----
+   DATA SIZE        =     51    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
