@@ -1,0 +1,24 @@
+C51 COMPILER V9.59.0.0   SEG                                                               02/04/2026 18:15:37 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SEG
+OBJECT MODULE PLACED IN .\Objects\Seg.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE ..\Driver\Seg.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG OBJECTE
+                    -XTEND PRINT(.\Listings\Seg.lst) TABS(2) OBJECT(.\Objects\Seg.obj)
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

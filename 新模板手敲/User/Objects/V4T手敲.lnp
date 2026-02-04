@@ -1,0 +1,7 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\Key.obj",
+".\Objects\Seg.obj",
+".\Objects\LED.obj" 
+TO ".\Objects\V4T ÷«√" 
+PRINT(".\Listings\V4T ÷«√.m51") RAMSIZE(256) 
