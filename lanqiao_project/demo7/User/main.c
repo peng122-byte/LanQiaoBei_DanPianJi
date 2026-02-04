@@ -14,8 +14,12 @@ unsigned char Seg_Point[8] = {0,0,0,0,0,0,0,0};//数码管小数点数据存放�
 unsigned char Seg_Pos;//数码管扫描专用变量
 unsigned int Seg_Slow_Down;//数码管减速专用变量
 unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};//Led显示数据存放数组
-unsigned char dat;
-
+unsigned int dat;//AD读取
+unsigned int Voltage = 200;//输出电压值
+unsigned char Display_Mode;//显示模式：0-电压显示界面 1-电压输出界面
+bit Led_Display;//Led显示标志位
+bit Seg_Display;//Seg显示标志位
+bit Voltage_Mode;//电压标志位
 /* 键盘处理函数 */
 void Key_Proc()
 {
@@ -27,6 +31,21 @@ void Key_Proc()
 	Key_Up = ~Key_Val & (Key_Old ^ Key_Val);//捕捉按键上降沿
 	Key_Old = Key_Val;//辅助扫描变量
 
+	switch(Key_Down)
+	{
+		case 4:
+			if(++Display_Mode == 2) Display_Mode = 0;
+		break;
+		case 5:
+			Voltage_Mode ^= 1;
+		break;
+		case 6:
+			Led_Display ^= 1;
+		break;
+		case 7:
+			Seg_Display ^= 1;
+		break;
+	}
 }
 
 /* 信息处理函数 */
@@ -34,16 +53,52 @@ void Seg_Proc()
 {
 	if(Seg_Slow_Down) return;
 	Seg_Slow_Down = 1;//数码管减速程序
-
-	dat = Ad_Read(0x43);
+	dat = (Ad_Read(0x43) *100) / 51 ;
+	Da_Write(Voltage * 51);
+	if(Voltage_Mode == 0) 
+			{
+				Voltage = 200;
+			}else
+			{
+				Voltage = dat;
+			}
+			
+			
+	if(Seg_Display == 0)
+	{
+			switch(Display_Mode)
+		{
+			case 0:
+				Seg_Buf[0] = 11;
+				Seg_Buf[5] = dat / 100 % 10;
+				Seg_Point[5] = 1;
+				Seg_Buf[6] = dat / 10 % 10;
+				Seg_Buf[7] = dat % 10;
+			break;
+			case 1:
+				Seg_Buf[0] = 12;
+				Seg_Buf[5] = Voltage / 100 % 10;
+				Seg_Point[5] = 1;
+				Seg_Buf[6] = Voltage / 10 % 10;
+				Seg_Buf[7] = Voltage % 10;
+			break;
+		}
+	}else
+	{
+		unsigned i;
+		for(i=0;i<8;i++)
+		{
+			Seg_Buf [i] = 10;
+			Seg_Point [i] = 0;
+		}
+	}
 	
 	
 	
 	
 	
-	Seg_Buf[5] = dat / 100 % 10;
-	Seg_Buf[6] = dat / 10 % 10;
-	Seg_Buf[7] = dat % 10;	
+	
+		
 	
 	
 }
@@ -51,9 +106,47 @@ void Seg_Proc()
 /* 其他显示函数 */
 void Led_Proc()
 {
-	unsigned i;
 	Relay(0);
 	Beep(0);
+	
+	if(Led_Display)
+	{
+		if(Display_Mode == 0)
+		{
+			ucLed[0] = 1;
+			ucLed[1] = 0;
+		}
+		if(Display_Mode == 1)
+		{
+			ucLed[0] = 0;
+			ucLed[1] = 1;
+		}
+		if(dat < 150) ucLed [2] = 0;
+		if((dat >= 150) && (dat < 250)) ucLed [2] = 1;
+		if((dat >= 250) && (dat < 350)) ucLed [2] = 0;
+		if(dat >= 350) ucLed [2] = 1;
+		
+		if(Voltage_Mode == 0)
+		{
+			ucLed [3] = 0;
+		}else
+		{
+			ucLed [3] = 1;
+		}
+		
+	}else
+	{
+		unsigned i;
+		for(i=0;i<8;i++)
+		{
+			ucLed [i] = 0;
+		}
+	}
+	
+	
+	
+	
+	
 }
 
 /* 定时器0中断初始化函数 */
