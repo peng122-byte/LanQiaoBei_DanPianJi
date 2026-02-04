@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 00:54:26 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 12:23:51 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -62,11 +62,11 @@ line level    source
   52          void Seg_Proc()
   53          {
   54   1        if(Seg_Slow_Down) return;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 00:54:26 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 12:23:51 PAGE 2   
 
   55   1        Seg_Slow_Down = 1;//数码管减速程序
   56   1        dat = (Ad_Read(0x43) *100) / 51 ;
-  57   1        Da_Write(Voltage * 51);
+  57   1        Da_Write(Voltage* 51 /100 );
   58   1        if(Voltage_Mode == 0) 
   59   1            {
   60   2              Voltage = 200;
@@ -126,7 +126,7 @@ line level    source
  114   2          if(Display_Mode == 0)
  115   2          {
  116   3            ucLed[0] = 1;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 00:54:26 PAGE 3   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 12:23:51 PAGE 3   
 
  117   3            ucLed[1] = 0;
  118   3          }
@@ -190,7 +190,7 @@ line level    source
  176          void main()
  177          {
  178   1        System_Init();
-C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 00:54:26 PAGE 4   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 12:23:51 PAGE 4   
 
  179   1        Timer0Init();
  180   1        while (1)
@@ -203,7 +203,7 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    624    ----
+   CODE SIZE        =    633    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

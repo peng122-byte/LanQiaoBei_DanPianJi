@@ -54,7 +54,7 @@ void Seg_Proc()
 	if(Seg_Slow_Down) return;
 	Seg_Slow_Down = 1;//数码管减速程序
 	dat = (Ad_Read(0x43) *100) / 51 ;
-	Da_Write(Voltage * 51);
+	Da_Write(Voltage* 51 /100 );
 	if(Voltage_Mode == 0) 
 			{
 				Voltage = 200;
