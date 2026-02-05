@@ -406,6 +406,11 @@
               <FileType>1</FileType>
               <FilePath>..\Driver\LED.c</FilePath>
             </File>
+            <File>
+              <FileName>Init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Init.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

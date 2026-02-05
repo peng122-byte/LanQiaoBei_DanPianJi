@@ -57,7 +57,7 @@ void Beep(bit enable)
 		P0 = temp_2;
 		
 		temp = P2 & 0x1f;
-		temp = temp|0x80;
+		temp = temp|0xa0;
 		P2 = temp;
 		temp = P2 & 0x1f;
 		P2 = temp;
@@ -81,7 +81,7 @@ void Motor(bit enable)
 		P0 = temp_2;
 		
 		temp = P2 & 0x1f;
-		temp = temp|0x80;
+		temp = temp|0xa0;
 		P2 = temp;
 		temp = P2 & 0x1f;
 		P2 = temp;
@@ -105,7 +105,7 @@ void Relay(bit enable)
 		P0 = temp_2;
 		
 		temp = P2 & 0x1f;
-		temp = temp|0x80;
+		temp = temp|0xa0;
 		P2 = temp;
 		temp = P2 & 0x1f;
 		P2 = temp;
