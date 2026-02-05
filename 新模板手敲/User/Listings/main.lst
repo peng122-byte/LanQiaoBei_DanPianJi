@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/04/2026 18:15:37 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/05/2026 12:53:31 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -9,17 +9,38 @@ COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE 
 line level    source
 
    1          #include <STC15F2K60S2.H>
-   2          void main()
-   3          {
-   4   1        while(1);
-   5   1      }
+   2          #include "LED.h"
+   3          
+   4          
+   5          pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
+   6          
+   7          
+   8          
+   9          
+  10          
+  11          void main()
+  12          {
+  13   1        Led_Disp(ucLed);
+  14   1        Beep(1);
+  15   1        Motor(1);
+  16   1        Relay(1);
+  17   1        
+  18   1        
+  19   1        
+  20   1        
+  21   1        
+  22   1        while(1)
+  23   1        {
+  24   2          
+  25   2        }
+  26   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =      2    ----
+   CODE SIZE        =     26    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
-   PDATA SIZE       =   ----    ----
+   PDATA SIZE       =      8    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
