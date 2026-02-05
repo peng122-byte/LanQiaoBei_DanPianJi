@@ -2,12 +2,14 @@
 #include "LED.h"
 #include "init.h"
 #include "Seg.h"
+#include "Key.h"
 pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
 pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10};
 idata unsigned char Seg_Pos = 0;
 idata unsigned char Seg_Slow_Down;
 
-
+idata unsigned char Key_Val,Key_Old,Key_Up,Key_Down;
+idata unsigned char Key_Slow_Down;
 void Led_Proc()
 {
 	ucLed[0] = 1;
