@@ -416,6 +416,11 @@
               <FileType>1</FileType>
               <FilePath>..\Driver\ds1302.c</FilePath>
             </File>
+            <File>
+              <FileName>onewire.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\onewire.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

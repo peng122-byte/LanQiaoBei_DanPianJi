@@ -33,6 +33,7 @@ compiling Seg.c...
 compiling LED.c...
 compiling Init.c...
 compiling ds1302.c...
+compiling onewire.c...
 linking...
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?LED_OFF?LED
@@ -42,10 +43,16 @@ linking...
     SEGMENT: ?PR?MOTOR?LED
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?RELAY?LED
-Program Size: data=27.4 xdata=27 code=1358
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_WRITE_DS18B20?ONEWIRE
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?READ_DS18B20?ONEWIRE
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?INIT_DS18B20?ONEWIRE
+Program Size: data=27.5 xdata=27 code=1501
 creating hex file from ".\Objects\V4T ÷«√"...
-".\Objects\V4T ÷«√" - 0 Error(s), 4 Warning(s).
-Build Time Elapsed:  00:00:01
+".\Objects\V4T ÷«√" - 0 Error(s), 7 Warning(s).
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>
