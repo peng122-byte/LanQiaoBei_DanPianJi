@@ -79,16 +79,11 @@ float rd_temperature()
 	
 	init_ds18b20();
 	Write_DS18B20(0xcc);//跳过rom检查
+	Write_DS18B20(0xbe);//读取温度
 	low = Read_DS18B20();
 	high = Read_DS18B20();
 	
 	return (float) (high<<8 | low) * 0.0625;
-	
-	
-	
-	
-	
-	
 	
 	
 	

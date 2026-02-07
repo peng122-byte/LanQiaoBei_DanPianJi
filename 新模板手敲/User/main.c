@@ -4,6 +4,7 @@
 #include "Seg.h"
 #include "Key.h"
 #include "ds1302.h"
+#include "onewire.h"
 pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
 pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10};
 idata unsigned char Seg_Pos = 0;
@@ -24,6 +25,8 @@ idata unsigned int Temperature_Slow_Down;
 void Key_Proc()
 {
 	if(Key_Slow_Down < 10) return;
+	Key_Slow_Down = 0;
+	
 	Key_Val = Key_Read();
 	Key_Down = Key_Val & (Key_Val ^ Key_Old);
 	Key_Up = ~ Key_Val & (Key_Val ^ Key_Old);
@@ -40,6 +43,7 @@ void Timer1_Isr(void) interrupt 3
 	Seg_Slow_Down ++;
 	Key_Slow_Down ++;
 	Time_Slow_Down ++;
+	Temperature_Slow_Down ++;
 	Seg_Pos = (++Seg_Pos) % 8;
 	if(Seg_Buf[Seg_Pos] > 20) 
 	{
@@ -54,7 +58,7 @@ void Timer1_Isr(void) interrupt 3
 void Seg_Proc()
 {
 	if(Seg_Slow_Down < 20) return;
-	
+	Seg_Slow_Down = 0;
 	
 }
 
@@ -73,8 +77,18 @@ void Led_Proc()
 void Get_Time()
 {
 	if(Time_Slow_Down < 100) return;
+	Time_Slow_Down = 0;
 	Read_Rtc(ucRtc);
 }
+
+void Get_Temperature()
+{
+	if(Temperature_Slow_Down <300) return;
+	Temperature_Slow_Down = 0;
+	Temperature_10x = rd_temperature() *10;
+}
+
+
 void Timer1_Init(void)		//1毫秒@12.000MHz
 {
 	AUXR &= 0xBF;			//定时器时钟12T模式
@@ -102,5 +116,6 @@ void main()
 		Led_Proc();
 		Seg_Proc();
 		Get_Time();
+		Get_Temperature();
 	}
 }
