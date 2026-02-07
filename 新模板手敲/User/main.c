@@ -17,6 +17,8 @@ idata unsigned char Key_Slow_Down;
 idata unsigned char ucRtc[3] = {11,12,13};
 idata unsigned char Time_Slow_Down;
 
+idata unsigned int Temperature_10x;
+idata unsigned int Temperature_Slow_Down;
 
 
 void Key_Proc()

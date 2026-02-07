@@ -65,3 +65,31 @@ bit init_ds18b20(void)
   
   	return initflag;
 }
+
+
+float rd_temperature()
+{
+	unsigned char high,low;
+	
+	init_ds18b20();
+	Write_DS18B20(0xcc);//跳过rom检查
+	Write_DS18B20(0x44);//开始转换
+	
+	Delay_OneWire(200);
+	
+	init_ds18b20();
+	Write_DS18B20(0xcc);//跳过rom检查
+	low = Read_DS18B20();
+	high = Read_DS18B20();
+	
+	return (float) (high<<8 | low) * 0.0625;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}
