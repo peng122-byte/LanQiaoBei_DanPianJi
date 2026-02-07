@@ -3,6 +3,7 @@
 #include "init.h"
 #include "Seg.h"
 #include "Key.h"
+#include "ds1302.h"
 pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
 pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10};
 idata unsigned char Seg_Pos = 0;
@@ -10,6 +11,51 @@ idata unsigned char Seg_Slow_Down;
 
 idata unsigned char Key_Val,Key_Old,Key_Up,Key_Down;
 idata unsigned char Key_Slow_Down;
+
+//idata unsigned char Key_Down_Data , Key_Up_Data;//Key调试用
+
+idata unsigned char ucRtc[3] = {11,12,13};
+idata unsigned char Time_Slow_Down;
+
+
+
+void Key_Proc()
+{
+	if(Key_Slow_Down < 10) return;
+	Key_Val = Key_Read();
+	Key_Down = Key_Val & (Key_Val ^ Key_Old);
+	Key_Up = ~ Key_Val & (Key_Val ^ Key_Old);
+	Key_Old = Key_Val;
+//	if(Key_Down != 0)
+//		Key_Down_Data = Key_Down;
+//	if(Key_Up != 0)
+//		Key_Up_Data = Key_Up;
+}
+
+
+void Timer1_Isr(void) interrupt 3
+{
+	Seg_Slow_Down ++;
+	Key_Slow_Down ++;
+	Time_Slow_Down ++;
+	Seg_Pos = (++Seg_Pos) % 8;
+	if(Seg_Buf[Seg_Pos] > 20) 
+	{
+		Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
+	}else
+	{
+		Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
+	}
+}
+
+
+void Seg_Proc()
+{
+	if(Seg_Slow_Down < 20) return;
+	
+	
+}
+
 void Led_Proc()
 {
 	ucLed[0] = 1;
@@ -22,36 +68,11 @@ void Led_Proc()
 	ucLed[7] = 0;
 	Led_Disp(ucLed);
 }
-void Key_Proc()
+void Get_Time()
 {
-	Seg_Buf[0] = 1;
-	Seg_Buf[1] = 2;
-	Seg_Buf[2] = 3+',';
-	Seg_Buf[3] = 4;
-	Seg_Buf[4] = 5;
-	Seg_Buf[5] = 6;
-	Seg_Buf[6] = 7;
-	Seg_Buf[7] = 8;
+	if(Time_Slow_Down < 100) return;
+	Read_Rtc(ucRtc);
 }
-void Seg_Proc()
-{
-	if(Seg_Slow_Down < 20) return;
-	
-}
-
-void Timer1_Isr(void) interrupt 3
-{
-	Seg_Slow_Down ++;
-	Seg_Pos = (++Seg_Pos) % 8;
-	if(Seg_Buf[Seg_Pos] > 20) 
-	{
-		Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
-	}else
-	{
-		Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
-	}
-}
-
 void Timer1_Init(void)		//1毫秒@12.000MHz
 {
 	AUXR &= 0xBF;			//定时器时钟12T模式
@@ -71,12 +92,13 @@ void Timer1_Init(void)		//1毫秒@12.000MHz
 void main()
 {
 	System_Init();
+	Set_Rtc(ucRtc);
 	Timer1_Init();
 	while(1)
 	{
-		Led_Proc();
 		Key_Proc();
+		Led_Proc();
 		Seg_Proc();
-		
+		Get_Time();
 	}
 }

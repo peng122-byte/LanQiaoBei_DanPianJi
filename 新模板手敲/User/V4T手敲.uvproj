@@ -411,6 +411,11 @@
               <FileType>1</FileType>
               <FilePath>..\Driver\Init.c</FilePath>
             </File>
+            <File>
+              <FileName>ds1302.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\ds1302.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

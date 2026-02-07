@@ -28,6 +28,7 @@ unsigned char Key_Read()
 	P44 = 1;P42 = 0; P35 = 1;//P34 = 1;
 	if(P30 == 0) temp = 11;
 	if(P31 == 0) temp = 10;
+	if((P32 == 0) && (P33 == 0)) return 89;//同时按下两个
 	if(P32 == 0) temp = 9;
 	if(P33 == 0) temp = 8;
 	
