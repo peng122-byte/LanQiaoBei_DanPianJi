@@ -117,6 +117,7 @@ void I2CSendAck(unsigned char ackbit)
 	0x42/0x02差分输入
 	0x43/0x03滑动变阻器输入
 */
+//0-5的模拟量转换为0-255
 unsigned char Ad_Read(unsigned char addr)
 {
 	unsigned char temp;
@@ -147,6 +148,34 @@ void Da_Write(unsigned char dat)
 	I2CSendByte(0x41);//写入DA使能
 	I2CWaitAck();
 	I2CSendByte(dat);//写入数字电压，DA可以转换为模拟电压
-
+	I2CWaitAck();
 }
 
+//写入的数组，写入的起始位置，写入数据的个数（字节数）
+void EEPROM_Write(unsigned char *str,unsigned char addr,unsigned num)
+{
+	I2CStart();
+	I2CSendByte(0xa0);//选中AT24C02,并且写操作
+	I2CWaitAck();
+	I2CSendByte(addr);//写入起始地址
+	I2CWaitAck();
+	
+	
+	while(num--)
+	{
+		I2CSendByte(str++);//写入我们的每一位数据后指针递增,然后为下一次写数据准备
+		I2CWaitAck();
+		I2C_Delay(200);//保证完全写入
+	}
+	I2CStop();
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+	I2C_Delay(255);
+}
