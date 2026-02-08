@@ -86,6 +86,7 @@ void Get_Temperature()
 	if(Temperature_Slow_Down <300) return;
 	Temperature_Slow_Down = 0;
 	Temperature_10x = rd_temperature() *10;
+	
 }
 
 

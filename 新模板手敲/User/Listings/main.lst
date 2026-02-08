@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 00:17:17 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 23:01:53 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   52   1        {
   53   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
   54   2        }
-C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 00:17:17 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 23:01:53 PAGE 2   
 
   55   1      }
   56          
@@ -98,41 +98,42 @@ line level    source
   86   1        if(Temperature_Slow_Down <300) return;
   87   1        Temperature_Slow_Down = 0;
   88   1        Temperature_10x = rd_temperature() *10;
-  89   1      }
-  90          
+  89   1        
+  90   1      }
   91          
-  92          void Timer1_Init(void)    //1毫秒@12.000MHz
-  93          {
-  94   1        AUXR &= 0xBF;     //定时器时钟12T模式
-  95   1        TMOD &= 0x0F;     //设置定时器模式
-  96   1        TL1 = 0x18;       //设置定时初始值
-  97   1        TH1 = 0xFC;       //设置定时初始值
-  98   1        TF1 = 0;        //清除TF1标志
-  99   1        TR1 = 1;        //定时器1开始计时
- 100   1        ET1 = 1;        //使能定时器1中断
- 101   1        EA =1 ;
- 102   1      }
- 103          
+  92          
+  93          void Timer1_Init(void)    //1毫秒@12.000MHz
+  94          {
+  95   1        AUXR &= 0xBF;     //定时器时钟12T模式
+  96   1        TMOD &= 0x0F;     //设置定时器模式
+  97   1        TL1 = 0x18;       //设置定时初始值
+  98   1        TH1 = 0xFC;       //设置定时初始值
+  99   1        TF1 = 0;        //清除TF1标志
+ 100   1        TR1 = 1;        //定时器1开始计时
+ 101   1        ET1 = 1;        //使能定时器1中断
+ 102   1        EA =1 ;
+ 103   1      }
  104          
  105          
  106          
  107          
- 108          void main()
- 109          {
- 110   1        System_Init();
- 111   1        Set_Rtc(ucRtc);
- 112   1        Timer1_Init();
- 113   1        while(1)
- 114   1        {
- 115   2          Key_Proc();
- 116   2          Led_Proc();
-C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 00:17:17 PAGE 3   
+ 108          
+ 109          void main()
+ 110          {
+ 111   1        System_Init();
+ 112   1        Set_Rtc(ucRtc);
+ 113   1        Timer1_Init();
+ 114   1        while(1)
+ 115   1        {
+ 116   2          Key_Proc();
+C51 COMPILER V9.59.0.0   MAIN                                                              02/08/2026 23:01:53 PAGE 3   
 
- 117   2          Seg_Proc();
- 118   2          Get_Time();
- 119   2          Get_Temperature();
- 120   2        }
- 121   1      }
+ 117   2          Led_Proc();
+ 118   2          Seg_Proc();
+ 119   2          Get_Time();
+ 120   2          Get_Temperature();
+ 121   2        }
+ 122   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
