@@ -719,6 +719,18 @@
             <li class="toc-item"><a href="#exp2" class="toc-link level-2">实验 2：按键输入</a></li>
             <li class="toc-item"><a href="#exp3" class="toc-link level-2">实验 3：时序观察</a></li>
             <li class="toc-item"><a href="#week3" class="toc-link">📚 第三周：芯片手册</a></li>
+            <li class="toc-item"><a href="#week3-struct" class="toc-link level-2">3.1 手册结构概览</a></li>
+            <li class="toc-item"><a href="#week3-pinout" class="toc-link level-2">3.2 引脚定义与封装</a></li>
+            <li class="toc-item"><a href="#week3-sfr" class="toc-link level-2">3.3 特殊功能寄存器</a></li>
+            <li class="toc-item"><a href="#week3-uart" class="toc-link level-2">3.4 串口寄存器</a></li>
+            <li class="toc-item"><a href="#week3-timer" class="toc-link level-2">3.5 定时器寄存器</a></li>
+            <li class="toc-item"><a href="#week3-int" class="toc-link level-2">3.6 中断系统</a></li>
+            <li class="toc-item"><a href="#week3-peripheral" class="toc-link level-2">3.9 外设芯片手册</a></li>
+            <li class="toc-item"><a href="#protocol" class="toc-link">📡 通信协议详解</a></li>
+            <li class="toc-item"><a href="#protocol-uart" class="toc-link level-2">4.2 UART 串口</a></li>
+            <li class="toc-item"><a href="#protocol-i2c" class="toc-link level-2">4.3 I2C 接口</a></li>
+            <li class="toc-item"><a href="#protocol-spi" class="toc-link level-2">4.4 SPI 接口</a></li>
+            <li class="toc-item"><a href="#protocol-onewire" class="toc-link level-2">4.5 1-Wire 单总线</a></li>
             <li class="toc-item"><a href="#resources" class="toc-link">🎓 学习资源</a></li>
             <li class="toc-item"><a href="#plan" class="toc-link">📅 三周学习计划</a></li>
             <li class="toc-item"><a href="#quiz" class="toc-link">✅ 自检清单</a></li>
@@ -1255,43 +1267,322 @@ TXD (P3.1) 引脚波形：
                 <h2 class="section-title">第三周：芯片手册阅读训练</h2>
             </header>
 
-            <div class="subsection">
-                <h3 class="subsection-title">3.1 引脚定义表（STC89C52）</h3>
+            <div class="info-card info">
+                <div class="info-card-title"><span class="icon">📚</span> 为什么要学会看手册？</div>
+                <p>芯片手册是最权威的资料，任何教程都是从手册中提取的。学会看手册 = 拥有"第一手信息"能力。</p>
+            </div>
+
+            <div class="subsection" id="week3-struct">
+                <h3 class="subsection-title">3.1 芯片手册结构概览</h3>
+
+                <p>STC89C52 数据手册通常包含以下章节（快速定位你需要的内容）：</p>
 
                 <div class="table-wrapper">
                     <table>
                         <tr>
-                            <th>引脚号</th>
-                            <th>名称</th>
-                            <th>功能</th>
+                            <th>章节</th>
+                            <th>内容</th>
+                            <th>什么时候看</th>
                         </tr>
-                        <tr><td>1</td><td>P1.0</td><td>GPIO（通用 I/O）</td></tr>
-                        <tr><td>2-8</td><td>P1.1-P1.7</td><td>GPIO（通用 I/O）</td></tr>
-                        <tr><td>9</td><td>RST</td><td>复位（高电平复位）</td></tr>
-                        <tr><td>10</td><td>P3.0 / RXD</td><td>GPIO / 串口接收</td></tr>
-                        <tr><td>11</td><td>P3.1 / TXD</td><td>GPIO / 串口发送</td></tr>
-                        <tr><td>12</td><td>P3.2 / INT0</td><td>GPIO / 外部中断0</td></tr>
-                        <tr><td>13</td><td>P3.3 / INT1</td><td>GPIO / 外部中断1</td></tr>
-                        <tr><td>14</td><td>P3.4 / T0</td><td>GPIO / 定时器0外部输入</td></tr>
-                        <tr><td>15</td><td>P3.5 / T1</td><td>GPIO / 定时器1外部输入</td></tr>
-                        <tr><td>18-19</td><td>XTAL1/XTAL2</td><td>晶振输入（常用 11.0592MHz）</td></tr>
-                        <tr><td>20</td><td>GND</td><td>电源地</td></tr>
-                        <tr><td>40</td><td>VCC</td><td>电源正极（5V）</td></tr>
+                        <tr><td>产品概述</td><td>功能特性、型号对比</td><td>选型时</td></tr>
+                        <tr><td>引脚定义</td><td>引脚功能、封装图</td><td>画原理图时</td></tr>
+                        <tr><td>电气特性</td><td>电压、电流、时序参数</td><td>硬件设计时</td></tr>
+                        <tr><td>存储器结构</td><td>RAM、ROM、SFR 地址</td><td>编程时</td></tr>
+                        <tr><td>I/O 端口</td><td>端口结构、驱动能力</td><td>接外设时</td></tr>
+                        <tr><td>定时器/计数器</td><td>工作模式、寄存器</td><td>定时、PWM 时</td></tr>
+                        <tr><td>串行口</td><td>UART 配置、波特率</td><td>通信时</td></tr>
+                        <tr><td>中断系统</td><td>中断源、优先级</td><td>写中断程序时</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-pinout">
+                <h3 class="subsection-title">3.2 引脚定义与封装图（DIP-40）</h3>
+
+                <div class="ascii-diagram">
+                    <pre>
+                    STC89C52 DIP-40 封装
+                    ┌────────────────────┐
+              P1.0 ─┤ 1              40 ├─ VCC (5V)
+              P1.1 ─┤ 2              39 ├─ P0.0 (AD0)
+              P1.2 ─┤ 3              38 ├─ P0.1 (AD1)
+              P1.3 ─┤ 4              37 ├─ P0.2 (AD2)
+              P1.4 ─┤ 5              36 ├─ P0.3 (AD3)
+              P1.5 ─┤ 6              35 ├─ P0.4 (AD4)
+              P1.6 ─┤ 7              34 ├─ P0.5 (AD5)
+              P1.7 ─┤ 8              33 ├─ P0.6 (AD6)
+               RST ─┤ 9              32 ├─ P0.7 (AD7)
+        P3.0 (RXD) ─┤ 10             31 ├─ EA/VPP
+        P3.1 (TXD) ─┤ 11             30 ├─ ALE/PROG
+       P3.2 (INT0) ─┤ 12             29 ├─ PSEN
+       P3.3 (INT1) ─┤ 13             28 ├─ P2.7 (A15)
+         P3.4 (T0) ─┤ 14             27 ├─ P2.6 (A14)
+         P3.5 (T1) ─┤ 15             26 ├─ P2.5 (A13)
+         P3.6 (WR) ─┤ 16             25 ├─ P2.4 (A12)
+         P3.7 (RD) ─┤ 17             24 ├─ P2.3 (A11)
+             XTAL2 ─┤ 18             23 ├─ P2.2 (A10)
+             XTAL1 ─┤ 19             22 ├─ P2.1 (A9)
+               GND ─┤ 20             21 ├─ P2.0 (A8)
+                    └────────────────────┘
+                    </pre>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>端口</th>
+                            <th>特点</th>
+                            <th>常见用途</th>
+                        </tr>
+                        <tr><td><strong>P0</strong></td><td>开漏输出，需外接上拉电阻</td><td>数据总线、LCD 数据口</td></tr>
+                        <tr><td><strong>P1</strong></td><td>准双向口，内部弱上拉</td><td>通用 I/O、按键、LED</td></tr>
+                        <tr><td><strong>P2</strong></td><td>准双向口，内部弱上拉</td><td>高 8 位地址线、通用 I/O</td></tr>
+                        <tr><td><strong>P3</strong></td><td>准双向口，第二功能丰富</td><td>串口、中断、定时器</td></tr>
                     </table>
                 </div>
 
-                <div class="info-card tip">
-                    <div class="info-card-title"><span class="icon">📖</span> 如何使用</div>
-                    <ol>
-                        <li>找到想用的功能（如串口 UART）</li>
-                        <li>查表找到对应引脚（P3.0=RXD, P3.1=TXD）</li>
-                        <li>51单片机引脚功能固定，无需配置复用</li>
-                    </ol>
+                <div class="info-card warning">
+                    <div class="info-card-title"><span class="icon">⚠️</span> P0 口特殊注意</div>
+                    <p>P0 口是<strong>开漏输出</strong>，作为通用 I/O 使用时必须外接 10kΩ 上拉电阻，否则无法输出高电平！</p>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-sfr">
+                <h3 class="subsection-title">3.3 特殊功能寄存器（SFR）</h3>
+
+                <p>51单片机通过配置 <strong>SFR（Special Function Register）</strong> 来控制各种外设。以下是最常用的寄存器：</p>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">I/O 端口寄存器</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>寄存器</th>
+                            <th>地址</th>
+                            <th>功能</th>
+                            <th>复位值</th>
+                        </tr>
+                        <tr><td>P0</td><td>0x80</td><td>P0 口数据寄存器</td><td>0xFF</td></tr>
+                        <tr><td>P1</td><td>0x90</td><td>P1 口数据寄存器</td><td>0xFF</td></tr>
+                        <tr><td>P2</td><td>0xA0</td><td>P2 口数据寄存器</td><td>0xFF</td></tr>
+                        <tr><td>P3</td><td>0xB0</td><td>P3 口数据寄存器</td><td>0xFF</td></tr>
+                    </table>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - 寄存器操作示例</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>// 方式1：整体操作
+P1 = 0x00;        // P1 口全部输出低电平
+P1 = 0xFF;        // P1 口全部输出高电平
+P1 = 0x0F;        // P1.0-P1.3 高，P1.4-P1.7 低
+
+// 方式2：位操作（需要 sbit 定义）
+sbit LED = P1^0;  // 定义 P1.0
+LED = 0;          // P1.0 输出低电平
+LED = 1;          // P1.0 输出高电平
+
+// 方式3：位运算
+P1 |= 0x01;       // P1.0 置 1，其他位不变
+P1 &= ~0x01;      // P1.0 置 0，其他位不变
+P1 ^= 0x01;       // P1.0 取反，其他位不变</code></pre>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-uart">
+                <h3 class="subsection-title">3.4 串口寄存器详解（重点）</h3>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">SCON - 串口控制寄存器（地址 0x98）</h4>
+                <div class="ascii-diagram">
+                    <pre>
+  位:   7     6     5     4     3     2     1     0
+      ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+SCON │ SM0 │ SM1 │ SM2 │ REN │ TB8 │ RB8 │ TI  │ RI  │
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+
+SM0/SM1: 工作模式选择
+  ┌─────┬─────┬────────────────────────────────────┐
+  │ SM0 │ SM1 │ 模式说明                            │
+  ├─────┼─────┼────────────────────────────────────┤
+  │  0  │  0  │ 模式0：同步移位寄存器（用于扩展I/O）│
+  │  0  │  1  │ 模式1：8位UART，波特率可变 ★常用    │
+  │  1  │  0  │ 模式2：9位UART，波特率固定          │
+  │  1  │  1  │ 模式3：9位UART，波特率可变          │
+  └─────┴─────┴────────────────────────────────────┘
+
+REN: 接收使能（1=允许接收）
+TI:  发送中断标志（发送完成后硬件置1，需软件清0）
+RI:  接收中断标志（接收完成后硬件置1，需软件清0）
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">波特率计算（模式1，定时器1）</h4>
+                <div class="ascii-diagram">
+                    <pre>
+波特率 = (2^SMOD / 32) × (晶振频率 / 12) / (256 - TH1)
+
+常用波特率配置（11.0592MHz 晶振，SMOD=0）：
+┌──────────┬───────┬────────────────────────┐
+│ 波特率   │  TH1  │ 说明                   │
+├──────────┼───────┼────────────────────────┤
+│   9600   │ 0xFD  │ 最常用                 │
+│   4800   │ 0xFA  │                        │
+│   2400   │ 0xF4  │                        │
+│  19200   │ 0xFD  │ 需设置 SMOD=1          │
+└──────────┴───────┴────────────────────────┘
+
+为什么用 11.0592MHz 晶振？
+因为它能产生精确的标准波特率，12MHz 会有误差！
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - 串口初始化（9600bps）</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>void uart_init() {
+    SCON = 0x50;   // 模式1（SM0=0,SM1=1），允许接收（REN=1）
+    TMOD &= 0x0F;  // 清除定时器1设置
+    TMOD |= 0x20;  // 定时器1，模式2（8位自动重装）
+    TH1 = 0xFD;    // 波特率 9600（11.0592MHz）
+    TL1 = 0xFD;    // 初值
+    TR1 = 1;       // 启动定时器1
+    ES = 1;        // 使能串口中断（可选）
+    EA = 1;        // 使能总中断（可选）
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-timer">
+                <h3 class="subsection-title">3.5 定时器寄存器详解</h3>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">TMOD - 定时器模式寄存器（地址 0x89）</h4>
+                <div class="ascii-diagram">
+                    <pre>
+  位:   7     6     5     4     3     2     1     0
+      ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+TMOD │GATE1│ C/T1│ M1  │ M0  │GATE0│ C/T0│ M1  │ M0  │
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+        ←── 定时器1 ──→    ←── 定时器0 ──→
+
+C/T: 0=定时器模式，1=计数器模式
+M1/M0: 工作模式选择
+  ┌─────┬─────┬──────────────────────────────┐
+  │ M1  │ M0  │ 模式说明                     │
+  ├─────┼─────┼──────────────────────────────┤
+  │  0  │  0  │ 模式0：13位定时器            │
+  │  0  │  1  │ 模式1：16位定时器 ★常用      │
+  │  1  │  0  │ 模式2：8位自动重装 ★波特率   │
+  │  1  │  1  │ 模式3：双8位定时器           │
+  └─────┴─────┴──────────────────────────────┘
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">定时时间计算（模式1，16位）</h4>
+                <div class="ascii-diagram">
+                    <pre>
+定时时间 = (65536 - 初值) × 12 / 晶振频率
+
+例：晶振 11.0592MHz，定时 1ms
+  初值 = 65536 - (1ms × 11.0592MHz / 12)
+       = 65536 - 921.6
+       ≈ 64614 = 0xFC66
+
+  TH0 = 0xFC;  TL0 = 0x66;
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - 定时器0中断（1ms）</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>void timer0_init() {
+    TMOD &= 0xF0;  // 清除定时器0设置
+    TMOD |= 0x01;  // 定时器0，模式1（16位）
+    TH0 = 0xFC;    // 初值高8位
+    TL0 = 0x66;    // 初值低8位
+    TR0 = 1;       // 启动定时器0
+    ET0 = 1;       // 使能定时器0中断
+    EA = 1;        // 使能总中断
+}
+
+// 定时器0中断服务函数
+void timer0_isr() interrupt 1 {
+    TH0 = 0xFC;    // 重装初值
+    TL0 = 0x66;
+    // 每 1ms 执行一次的代码
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-int">
+                <h3 class="subsection-title">3.6 中断系统</h3>
+
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>中断源</th>
+                            <th>中断号</th>
+                            <th>入口地址</th>
+                            <th>触发条件</th>
+                        </tr>
+                        <tr><td>外部中断0 (INT0)</td><td>0</td><td>0x0003</td><td>P3.2 下降沿/低电平</td></tr>
+                        <tr><td>定时器0 (T0)</td><td>1</td><td>0x000B</td><td>定时器溢出</td></tr>
+                        <tr><td>外部中断1 (INT1)</td><td>2</td><td>0x0013</td><td>P3.3 下降沿/低电平</td></tr>
+                        <tr><td>定时器1 (T1)</td><td>3</td><td>0x001B</td><td>定时器溢出</td></tr>
+                        <tr><td>串口 (UART)</td><td>4</td><td>0x0023</td><td>发送/接收完成</td></tr>
+                    </table>
+                </div>
+
+                <div class="ascii-diagram">
+                    <pre>
+中断使能寄存器 IE（地址 0xA8）：
+  位:   7     6     5     4     3     2     1     0
+      ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+  IE  │ EA  │  -  │  -  │ ES  │ ET1 │ EX1 │ ET0 │ EX0 │
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+        │                 │     │     │     │     └─ 外部中断0
+        │                 │     │     │     └─────── 定时器0
+        │                 │     │     └───────────── 外部中断1
+        │                 │     └─────────────────── 定时器1
+        │                 └───────────────────────── 串口
+        └─────────────────────────────────────────── 总中断开关
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - 中断服务函数写法</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>// 外部中断0（按键触发）
+void int0_isr() interrupt 0 {
+    // 处理代码
+}
+
+// 定时器0中断
+void timer0_isr() interrupt 1 {
+    TH0 = 0xFC; TL0 = 0x66;  // 重装初值
+}
+
+// 串口中断
+void uart_isr() interrupt 4 {
+    if(RI) {                  // 接收中断
+        unsigned char dat = SBUF;
+        RI = 0;               // 清标志
+    }
+    if(TI) {                  // 发送中断
+        TI = 0;               // 清标志
+    }
+}</code></pre>
                 </div>
             </div>
 
             <div class="subsection">
-                <h3 class="subsection-title">3.2 电气特性表</h3>
+                <h3 class="subsection-title">3.7 电气特性表</h3>
 
                 <div class="table-wrapper">
                     <table>
@@ -1307,21 +1598,1032 @@ TXD (P3.1) 引脚波形：
                         <tr><td>单个 I/O 拉电流</td><td>-</td><td>-</td><td>1</td><td>mA</td></tr>
                         <tr><td>输入高电平 VIH</td><td>2.0</td><td>-</td><td>VCC+0.5</td><td>V</td></tr>
                         <tr><td>输入低电平 VIL</td><td>-0.5</td><td>-</td><td>0.8</td><td>V</td></tr>
+                        <tr><td>工作温度</td><td>-40</td><td>25</td><td>85</td><td>°C</td></tr>
+                        <tr><td>工作频率</td><td>0</td><td>11.0592</td><td>40</td><td>MHz</td></tr>
                     </table>
                 </div>
 
                 <div class="info-card warning">
-                    <div class="info-card-title"><span class="icon">💡</span> 关键信息</div>
+                    <div class="info-card-title"><span class="icon">💡</span> 驱动能力关键点</div>
                     <ul>
-                        <li><strong>灌电流强</strong>（20mA）→ 用低电平驱动 LED（LED 接 VCC）</li>
-                        <li><strong>拉电流弱</strong>（1mA）→ 不能用高电平直接驱动 LED</li>
+                        <li><strong>灌电流强</strong>（20mA）→ 用低电平驱动 LED（LED 阳极接 VCC）</li>
+                        <li><strong>拉电流弱</strong>（1mA）→ 高电平无法直接驱动 LED</li>
                         <li>驱动继电器、电机 → 需要三极管或驱动芯片（如 ULN2003）</li>
+                        <li>P0 口 → 必须外接上拉电阻（10kΩ），否则只能输出低电平</li>
                     </ul>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">3.8 手册阅读技巧总结</h3>
+
+                <div class="info-card tip">
+                    <div class="info-card-title"><span class="icon">🎯</span> 新手必看章节（按优先级）</div>
+                    <ol>
+                        <li><strong>引脚定义</strong> → 画原理图必看</li>
+                        <li><strong>电气特性</strong> → 电压、电流限制</li>
+                        <li><strong>I/O 端口</strong> → P0 需要上拉！</li>
+                        <li><strong>定时器</strong> → 延时、PWM 必用</li>
+                        <li><strong>串口</strong> → 调试、通信必用</li>
+                        <li><strong>中断</strong> → 实时响应必用</li>
+                    </ol>
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+                        <span>📝 练习：配置串口 9600bps 需要设置哪些寄存器？</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <ol>
+                            <li><strong>SCON = 0x50</strong>：模式1 + 允许接收</li>
+                            <li><strong>TMOD |= 0x20</strong>：定时器1 模式2</li>
+                            <li><strong>TH1 = TL1 = 0xFD</strong>：波特率 9600</li>
+                            <li><strong>TR1 = 1</strong>：启动定时器1</li>
+                            <li>（可选）<strong>ES = 1; EA = 1;</strong>：使能串口中断</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subsection" id="week3-peripheral">
+                <h3 class="subsection-title">3.9 外设芯片手册阅读（以 DS1302 为例）</h3>
+
+                <p>单片机手册告诉你"我有什么功能"，而<strong>外设芯片手册</strong>告诉你"怎么跟我通信"。阅读方法完全不同！</p>
+
+                <div class="info-card info">
+                    <div class="info-card-title"><span class="icon">💡</span> 核心区别</div>
+                    <ul>
+                        <li><strong>单片机手册</strong> → 关注寄存器配置（我怎么工作）</li>
+                        <li><strong>外设芯片手册</strong> → 关注通信时序（怎么跟我说话）</li>
+                    </ul>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">五步阅读法</h4>
+                <div class="ascii-diagram">
+                    <pre>
+┌─────────────────────────────────────────────────────────────┐
+│  第1步：这芯片是干嘛的？（Features / Description）          │
+│    ↓                                                        │
+│  第2步：怎么接线？（Pin Configuration / Typical Circuit）   │
+│    ↓                                                        │
+│  第3步：怎么通信？（Timing Diagram / Protocol）⭐最重要     │
+│    ↓                                                        │
+│  第4步：发什么命令？（Command Byte / Register Map）         │
+│    ↓                                                        │
+│  第5步：数据格式？（Data Format / BCD编码）                 │
+└─────────────────────────────────────────────────────────────┘
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">第 1 步：这芯片是干嘛的？</h4>
+                <p>看手册第 1 页的 <strong>FEATURES</strong>，快速提取关键信息：</p>
+                <div class="ascii-diagram">
+                    <pre>
+DS1302 关键信息提取：
+┌────────────────────────────────────────────┐
+│ ✓ 实时时钟（秒/分/时/日/月/年/星期）       │
+│ ✓ 31 字节 RAM（可存数据，掉电丢失）        │
+│ ✓ 3 线串行接口（CE、I/O、SCLK）            │
+│ ✓ 工作电压 2.0V - 5.5V（兼容 51 单片机）   │
+│ ✓ 支持备用电池（VCC1 接电池）              │
+└────────────────────────────────────────────┘
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">第 2 步：怎么接线？</h4>
+                <p>看 <strong>Pin Configuration</strong> 和 <strong>Typical Operating Circuit</strong>：</p>
+                <div class="ascii-diagram">
+                    <pre>
+DS1302 接线图（最小系统）：
+
+    51单片机                    DS1302
+    ┌──────┐                  ┌────────┐
+    │      │                  │        │
+    │  P3.5├──────────────────┤CE    X1├──┬──[32.768kHz晶振]
+    │      │                  │        │  │
+    │  P3.4├──────────────────┤I/O   X2├──┘
+    │      │                  │        │
+    │  P3.6├──────────────────┤SCLK VCC1├───── +5V（或电池）
+    │      │                  │        │
+    │   GND├──────────────────┤GND  VCC2├───── +5V
+    └──────┘                  └────────┘
+
+引脚功能速记：
+  CE   = 片选（高电平有效，开始通信）
+  I/O  = 数据线（双向，读写都用它）
+  SCLK = 时钟线（单片机产生）
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">第 3 步：怎么通信？（⭐重点）</h4>
+                <p>看 <strong>Timing Diagram</strong>（时序图）—— 这是外设芯片手册的<strong>核心</strong>！</p>
+                <div class="ascii-diagram">
+                    <pre>
+DS1302 单字节写入时序：
+
+CE   ___/‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\___
+         ↑                               ↑
+        拉高                            拉低
+
+SCLK ___/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_/‾\_____  (8个脉冲)
+         1   2   3   4   5   6   7   8
+
+I/O  ───&lt;D0&gt;&lt;D1&gt;&lt;D2&gt;&lt;D3&gt;&lt;D4&gt;&lt;D5&gt;&lt;D6&gt;&lt;D7&gt;────
+         ↑
+        先发 LSB（最低位）
+
+关键时序要求：
+  ① CE 拉高后，SCLK 才能有效
+  ② 数据在 SCLK 上升沿被采样
+  ③ LSB 先发（和 UART 一样）
+  ④ 写完后 CE 拉低结束
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - 时序转代码</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>sbit CE   = P3^5;
+sbit IO   = P3^4;
+sbit SCLK = P3^6;
+
+// 写一个字节（对照时序图理解）
+void ds1302_write_byte(unsigned char dat) {
+    unsigned char i;
+    for(i = 0; i < 8; i++) {
+        IO = dat & 0x01;   // ① 取最低位放到 I/O 线
+        SCLK = 1;          // ② 上升沿，DS1302 采样
+        SCLK = 0;          // ③ 为下一位做准备
+        dat >>= 1;         // ④ 右移，准备下一位
+    }
+}</code></pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">第 4 步：发什么命令？</h4>
+                <p>看 <strong>Command Byte</strong> 和 <strong>Register Map</strong>：</p>
+                <div class="ascii-diagram">
+                    <pre>
+DS1302 命令字节格式：
+
+  位:   7     6     5     4     3     2     1     0
+      ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+      │  1  │RAM/ │ A4  │ A3  │ A2  │ A1  │ A0  │ RD/ │
+      │     │ CK  │     │     │     │     │     │ WR  │
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+        ↑      ↑     └──────────┬──────────┘     ↑
+       必须   0=时钟           地址            0=写
+       为1   1=RAM                            1=读
+                    </pre>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>功能</th>
+                            <th>写命令</th>
+                            <th>读命令</th>
+                            <th>说明</th>
+                        </tr>
+                        <tr><td>秒</td><td>0x80</td><td>0x81</td><td>bit7=CH（1=停止）</td></tr>
+                        <tr><td>分</td><td>0x82</td><td>0x83</td><td>0-59</td></tr>
+                        <tr><td>时</td><td>0x84</td><td>0x85</td><td>1-12 或 0-23</td></tr>
+                        <tr><td>日</td><td>0x86</td><td>0x87</td><td>1-31</td></tr>
+                        <tr><td>月</td><td>0x88</td><td>0x89</td><td>1-12</td></tr>
+                        <tr><td>星期</td><td>0x8A</td><td>0x8B</td><td>1-7</td></tr>
+                        <tr><td>年</td><td>0x8C</td><td>0x8D</td><td>00-99</td></tr>
+                        <tr><td>写保护</td><td>0x8E</td><td>0x8F</td><td>bit7=WP（1=保护）</td></tr>
+                    </table>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">第 5 步：数据格式？</h4>
+                <p>DS1302 使用 <strong>BCD 编码</strong>（不是二进制！）：</p>
+                <div class="ascii-diagram">
+                    <pre>
+例：存储时间 23:59:30
+
+十进制      BCD编码       含义
+  30    →    0x30    →   秒寄存器存 0x30
+  59    →    0x59    →   分寄存器存 0x59
+  23    →    0x23    →   时寄存器存 0x23
+
+BCD 编码：每个十进制位用 4 位二进制表示
+  23 = 0010 0011 = 0x23（不是 0x17！）
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - BCD 转换函数</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>// 十进制 → BCD（写入 DS1302 前转换）
+unsigned char dec_to_bcd(unsigned char dec) {
+    return ((dec / 10) &lt;&lt; 4) | (dec % 10);
+}
+
+// BCD → 十进制（从 DS1302 读出后转换）
+unsigned char bcd_to_dec(unsigned char bcd) {
+    return (bcd >> 4) * 10 + (bcd & 0x0F);
+}</code></pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">完整驱动示例</h4>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - DS1302 完整驱动</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>#include &lt;reg52.h&gt;
+
+sbit CE   = P3^5;
+sbit IO   = P3^4;
+sbit SCLK = P3^6;
+
+// 写一个字节
+void ds1302_write_byte(unsigned char dat) {
+    unsigned char i;
+    for(i = 0; i < 8; i++) {
+        IO = dat & 0x01;
+        SCLK = 1; SCLK = 0;
+        dat >>= 1;
+    }
+}
+
+// 读一个字节
+unsigned char ds1302_read_byte() {
+    unsigned char i, dat = 0;
+    for(i = 0; i < 8; i++) {
+        dat >>= 1;
+        if(IO) dat |= 0x80;
+        SCLK = 1; SCLK = 0;
+    }
+    return dat;
+}
+
+// 写寄存器
+void ds1302_write(unsigned char addr, unsigned char dat) {
+    CE = 0; SCLK = 0;
+    CE = 1;
+    ds1302_write_byte(addr);  // 发命令
+    ds1302_write_byte(dat);   // 发数据
+    CE = 0;
+}
+
+// 读寄存器
+unsigned char ds1302_read(unsigned char addr) {
+    unsigned char dat;
+    CE = 0; SCLK = 0;
+    CE = 1;
+    ds1302_write_byte(addr | 0x01);  // 发读命令
+    dat = ds1302_read_byte();
+    CE = 0;
+    return dat;
+}
+
+// 使用示例
+void main() {
+    unsigned char hour, min, sec;
+
+    ds1302_write(0x8E, 0x00);  // 关闭写保护
+    ds1302_write(0x80, 0x00);  // 秒=0，启动时钟
+    ds1302_write(0x82, 0x30);  // 分=30
+    ds1302_write(0x84, 0x12);  // 时=12
+    ds1302_write(0x8E, 0x80);  // 开启写保护
+
+    while(1) {
+        sec  = ds1302_read(0x81);  // 读秒（BCD）
+        min  = ds1302_read(0x83);  // 读分（BCD）
+        hour = ds1302_read(0x85);  // 读时（BCD）
+        // 显示到数码管（需转成十进制）
+    }
+}</code></pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">外设芯片手册阅读技巧总结</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>章节</th>
+                            <th>关注点</th>
+                            <th>什么时候看</th>
+                        </tr>
+                        <tr><td><strong>Features</strong></td><td>芯片功能、电压范围</td><td>选型时</td></tr>
+                        <tr><td><strong>Pin Description</strong></td><td>每个引脚功能</td><td>画原理图时</td></tr>
+                        <tr><td><strong>Typical Circuit</strong></td><td>接线参考电路</td><td>画原理图时</td></tr>
+                        <tr><td><strong>Timing Diagram</strong></td><td>通信时序（⭐最重要）</td><td>写驱动时</td></tr>
+                        <tr><td><strong>Command/Register</strong></td><td>命令格式、寄存器地址</td><td>写驱动时</td></tr>
+                        <tr><td><strong>Electrical Specs</strong></td><td>电压电流时序参数</td><td>调试问题时</td></tr>
+                    </table>
+                </div>
+
+                <div class="info-card danger">
+                    <div class="info-card-title"><span class="icon">⚠️</span> 新手常见坑</div>
+                    <ul>
+                        <li><strong>时序方向搞反</strong> → 仔细看"上升沿采样"还是"下降沿"</li>
+                        <li><strong>MSB/LSB 顺序</strong> → DS1302 是 LSB 先发</li>
+                        <li><strong>BCD 编码忘转换</strong> → 读出 0x23 不是十进制 23</li>
+                        <li><strong>写保护没关</strong> → DS1302 需先写 0x8E=0x00</li>
+                        <li><strong>CE 时序不对</strong> → CE 要在 SCLK 之前拉高</li>
+                    </ul>
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+                        <span>📝 练习：如何设置 DS1302 时间为 14:30:00？</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">C51</span>
+                                <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                            </div>
+                            <pre><code>ds1302_write(0x8E, 0x00);  // 关闭写保护
+ds1302_write(0x80, 0x00);  // 秒 = 00（BCD）
+ds1302_write(0x82, 0x30);  // 分 = 30（BCD）
+ds1302_write(0x84, 0x14);  // 时 = 14（BCD）
+ds1302_write(0x8E, 0x80);  // 开启写保护</code></pre>
+                        </div>
+                        <p><strong>注意：</strong>时间值是 BCD 编码，14:30:00 写入 0x14、0x30、0x00</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- 学习资源 -->
+        <!-- 通信协议 -->
+        <section class="section" id="protocol">
+            <header class="section-header">
+                <span class="section-icon">📡</span>
+                <h2 class="section-title">通信协议详解</h2>
+            </header>
+
+            <p>掌握了前面的数电基础和芯片手册阅读方法，现在可以学习最实用的<strong>通信协议</strong>了！</p>
+
+            <div class="info-card info">
+                <div class="info-card-title"><span class="icon">💡</span> 为什么要学通信协议？</div>
+                <p>单片机需要和各种外设（传感器、显示屏、存储器）"对话"，通信协议就是双方约定的"语言规则"。</p>
+            </div>
+
+            <div class="subsection" id="protocol-overview">
+                <h3 class="subsection-title">4.1 常用协议对比</h3>
+
+                <div class="table-wrapper">
+                    <table>
+                        <tr>
+                            <th>协议</th>
+                            <th>信号线</th>
+                            <th>速度</th>
+                            <th>设备数</th>
+                            <th>典型应用</th>
+                        </tr>
+                        <tr>
+                            <td><strong>UART</strong></td>
+                            <td>2 线（TX/RX）</td>
+                            <td>较慢（9600-115200bps）</td>
+                            <td>点对点</td>
+                            <td>调试串口、GPS、蓝牙模块</td>
+                        </tr>
+                        <tr>
+                            <td><strong>I2C</strong></td>
+                            <td>2 线（SCL/SDA）</td>
+                            <td>中等（100k-400kHz）</td>
+                            <td>多设备（地址区分）</td>
+                            <td>EEPROM、温湿度传感器、OLED</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SPI</strong></td>
+                            <td>4 线（SCK/MOSI/MISO/CS）</td>
+                            <td>快（可达 MHz 级）</td>
+                            <td>多设备（CS 选择）</td>
+                            <td>Flash、SD 卡、TFT 屏幕</td>
+                        </tr>
+                        <tr>
+                            <td><strong>1-Wire</strong></td>
+                            <td>1 线（DQ）</td>
+                            <td>慢</td>
+                            <td>多设备</td>
+                            <td>DS18B20 温度传感器</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="ascii-diagram">
+                    <pre>
+选择协议的简单原则：
+┌────────────────────────────────────────────────┐
+│  调试/打印信息  →  UART（最简单）              │
+│  接传感器      →  I2C（线少、可挂多个）       │
+│  接存储器/屏幕  →  SPI（速度快）              │
+│  接温度传感器   →  1-Wire（线最少）            │
+└────────────────────────────────────────────────┘
+                    </pre>
+                </div>
+            </div>
+
+            <div class="subsection" id="protocol-uart">
+                <h3 class="subsection-title">4.2 UART（串口通信）</h3>
+
+                <p>UART 是最简单、最常用的通信协议，51单片机内置硬件支持。</p>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">基本概念</h4>
+                <div class="ascii-diagram">
+                    <pre>
+UART 连接方式（交叉连接）：
+    设备A                设备B
+   ┌─────┐              ┌─────┐
+   │  TX ├──────────────┤ RX  │
+   │     │              │     │
+   │  RX ├──────────────┤ TX  │
+   │     │              │     │
+   │ GND ├──────────────┤ GND │ ← 必须共地！
+   └─────┘              └─────┘
+
+关键参数：
+  波特率（Baud Rate）：每秒传输的位数，如 9600bps
+  数据位：通常 8 位
+  停止位：通常 1 位
+  校验位：无校验（None）/ 奇校验 / 偶校验
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">帧格式</h4>
+                <div class="ascii-diagram">
+                    <pre>
+UART 一帧数据（8N1 格式）：
+
+空闲   起始   D0   D1   D2   D3   D4   D5   D6   D7   停止  空闲
+(高)   (低)  ←─────────── 8位数据 ──────────→  (高)  (高)
+ ─┐   ┌───┐                                   ┌───┐  ─
+  └───┘   └───────────────────────────────────┘   └───
+
+例：发送字符 'A'（ASCII = 0x41 = 0b01000001）
+空闲 → 起始位(0) → 1→0→0→0→0→0→1→0 → 停止位(1)
+                   └── LSB 先发 ──┘
+
+每位持续时间 = 1 / 波特率
+  9600bps → 1/9600 ≈ 104μs
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">51单片机 UART 配置</h4>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - UART 初始化与收发</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>#include &lt;reg52.h&gt;
+
+// UART 初始化（9600bps，11.0592MHz 晶振）
+void uart_init() {
+    SCON = 0x50;   // 模式1，8位数据，允许接收
+    TMOD &= 0x0F;  // 清除定时器1设置
+    TMOD |= 0x20;  // 定时器1，模式2（自动重装）
+    TH1 = 0xFD;    // 波特率 9600
+    TL1 = 0xFD;
+    TR1 = 1;       // 启动定时器1
+}
+
+// 发送一个字节
+void uart_send_byte(unsigned char dat) {
+    SBUF = dat;       // 数据放入发送缓冲区
+    while(!TI);       // 等待发送完成
+    TI = 0;           // 清除发送标志
+}
+
+// 发送字符串
+void uart_send_string(char *str) {
+    while(*str) {
+        uart_send_byte(*str++);
+    }
+}
+
+// 接收一个字节（查询方式）
+unsigned char uart_recv_byte() {
+    while(!RI);       // 等待接收完成
+    RI = 0;           // 清除接收标志
+    return SBUF;      // 返回接收数据
+}
+
+void main() {
+    uart_init();
+    uart_send_string("Hello, 51!\r\n");
+
+    while(1) {
+        unsigned char ch = uart_recv_byte();
+        uart_send_byte(ch);  // 回显
+    }
+}</code></pre>
+                </div>
+
+                <div class="info-card tip">
+                    <div class="info-card-title"><span class="icon">💡</span> 常用波特率配置（11.0592MHz）</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <tr><th>波特率</th><th>TH1</th><th>SMOD</th></tr>
+                            <tr><td>9600</td><td>0xFD</td><td>0</td></tr>
+                            <tr><td>4800</td><td>0xFA</td><td>0</td></tr>
+                            <tr><td>2400</td><td>0xF4</td><td>0</td></tr>
+                            <tr><td>19200</td><td>0xFD</td><td>1</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subsection" id="protocol-i2c">
+                <h3 class="subsection-title">4.3 I2C（两线式接口）</h3>
+
+                <p>I2C 只需要 2 根线就能连接多个设备，非常适合连接传感器。</p>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">基本概念</h4>
+                <div class="ascii-diagram">
+                    <pre>
+I2C 总线连接（一主多从）：
+                    VDD
+                     │
+                ┌────┴────┐ 上拉电阻（4.7kΩ）
+                │         │
+    ┌───────────┼────┬────┼───────────┐
+    │           │    │    │           │
+┌───┴───┐   ┌───┴────┴───┐   ┌───┴───┐
+│ 主机  │   │    SDA     │   │ 从机1 │
+│(51单片机)  │    SCL     │   │(AT24C02)
+└───────┘   └────────────┘   └───────┘
+                 │    │           │
+             ┌───┴────┴───┐   ┌───┴───┐
+             │            │   │ 从机2 │
+             └────────────┘   │(OLED) │
+                              └───────┘
+
+两根线：
+  SCL = 时钟线（主机产生）
+  SDA = 数据线（双向）
+
+⚠️ 必须有上拉电阻（4.7kΩ），因为是开漏输出！
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">通信时序</h4>
+                <div class="ascii-diagram">
+                    <pre>
+I2C 基本时序：
+
+1. 起始条件（Start）：SCL 高时，SDA 下降沿
+   SCL ──────┐
+             └────
+   SDA ───┐
+          └───────
+
+2. 停止条件（Stop）：SCL 高时，SDA 上升沿
+   SCL ────┐
+           └──────
+   SDA ─────────┐
+                └─
+
+3. 数据传输：SCL 低时 SDA 可变化，SCL 高时 SDA 必须稳定
+   SCL    ┌──┐  ┌──┐  ┌──┐
+       ───┘  └──┘  └──┘  └──
+   SDA ──&lt;D7&gt;─&lt;D6&gt;─&lt;D5&gt;─...
+          ↑
+        SCL 高时采样
+
+4. 应答（ACK）：接收方在第 9 个时钟拉低 SDA
+   主机发 8 位数据后释放 SDA，从机拉低表示 ACK
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">地址格式</h4>
+                <div class="ascii-diagram">
+                    <pre>
+I2C 地址字节（第一个字节）：
+
+  位:   7     6     5     4     3     2     1     0
+      ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+      │ A6  │ A5  │ A4  │ A3  │ A2  │ A1  │ A0  │ R/W │
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+        └──────────── 7位设备地址 ──────────┘     │
+                                                 └─ 0=写，1=读
+
+常见设备地址：
+  AT24C02 EEPROM：0x50（A0-A2 接地时）
+  OLED (SSD1306)：0x3C 或 0x3D
+  BMP280 气压计：0x76 或 0x77
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - I2C 软件模拟（GPIO 模拟）</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>#include &lt;reg52.h&gt;
+
+sbit SCL = P2^1;
+sbit SDA = P2^0;
+
+void delay_us(unsigned char us) {
+    while(us--);
+}
+
+// 起始条件
+void i2c_start() {
+    SDA = 1; SCL = 1; delay_us(5);
+    SDA = 0; delay_us(5);  // SCL高时，SDA下降沿
+    SCL = 0; delay_us(5);
+}
+
+// 停止条件
+void i2c_stop() {
+    SDA = 0; SCL = 1; delay_us(5);
+    SDA = 1; delay_us(5);  // SCL高时，SDA上升沿
+}
+
+// 发送一个字节，返回 ACK（0=有应答）
+unsigned char i2c_send_byte(unsigned char dat) {
+    unsigned char i, ack;
+    for(i = 0; i < 8; i++) {
+        SDA = (dat & 0x80) ? 1 : 0;  // MSB 先发
+        dat <<= 1;
+        SCL = 1; delay_us(5);
+        SCL = 0; delay_us(5);
+    }
+    SDA = 1;  // 释放 SDA，等待 ACK
+    SCL = 1; delay_us(5);
+    ack = SDA;  // 读取 ACK（0=有应答）
+    SCL = 0; delay_us(5);
+    return ack;
+}
+
+// 接收一个字节
+unsigned char i2c_recv_byte(unsigned char ack) {
+    unsigned char i, dat = 0;
+    SDA = 1;  // 释放 SDA
+    for(i = 0; i < 8; i++) {
+        SCL = 1; delay_us(5);
+        dat <<= 1;
+        if(SDA) dat |= 0x01;
+        SCL = 0; delay_us(5);
+    }
+    SDA = ack ? 0 : 1;  // 发送 ACK 或 NACK
+    SCL = 1; delay_us(5);
+    SCL = 0; delay_us(5);
+    SDA = 1;
+    return dat;
+}
+
+// 向设备写一个字节
+void i2c_write_reg(unsigned char addr, unsigned char reg, unsigned char dat) {
+    i2c_start();
+    i2c_send_byte(addr << 1);      // 设备地址 + 写
+    i2c_send_byte(reg);            // 寄存器地址
+    i2c_send_byte(dat);            // 数据
+    i2c_stop();
+}
+
+// 从设备读一个字节
+unsigned char i2c_read_reg(unsigned char addr, unsigned char reg) {
+    unsigned char dat;
+    i2c_start();
+    i2c_send_byte(addr << 1);      // 设备地址 + 写
+    i2c_send_byte(reg);            // 寄存器地址
+    i2c_start();                   // 重复起始
+    i2c_send_byte((addr << 1) | 1);// 设备地址 + 读
+    dat = i2c_recv_byte(0);        // 读数据，NACK
+    i2c_stop();
+    return dat;
+}</code></pre>
+                </div>
+
+                <div class="info-card warning">
+                    <div class="info-card-title"><span class="icon">⚠️</span> I2C 注意事项</div>
+                    <ul>
+                        <li><strong>必须上拉电阻</strong> → 典型值 4.7kΩ</li>
+                        <li><strong>MSB 先发</strong> → 与 UART/DS1302 不同！</li>
+                        <li><strong>开漏输出</strong> → P0 口天然适合，P1-P3 需注意</li>
+                        <li><strong>速度受限</strong> → 线长、上拉电阻影响速度</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="subsection" id="protocol-spi">
+                <h3 class="subsection-title">4.4 SPI（串行外设接口）</h3>
+
+                <p>SPI 是最快的串行协议，适合传输大量数据（如 Flash、LCD）。</p>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">基本概念</h4>
+                <div class="ascii-diagram">
+                    <pre>
+SPI 连接方式（一主多从）：
+
+   主机（51单片机）              从机
+   ┌──────────┐               ┌──────────┐
+   │      SCK ├───────────────┤ SCK      │
+   │     MOSI ├───────────────┤ MOSI(DI) │ 主出从入
+   │     MISO ├───────────────┤ MISO(DO) │ 主入从出
+   │      CS0 ├───────────────┤ CS       │
+   └──────────┘               └──────────┘
+        │
+        │ CS1 ─────────────────┬──────────┐
+        │                      │ CS       │
+        │                      │ 从机2    │
+        │                      └──────────┘
+
+四根线（全双工）：
+  SCK  = 时钟（主机产生）
+  MOSI = 主出从入（Master Out, Slave In）
+  MISO = 主入从出（Master In, Slave Out）
+  CS   = 片选（低电平有效）
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">四种工作模式</h4>
+                <div class="ascii-diagram">
+                    <pre>
+SPI 有 4 种模式，由 CPOL 和 CPHA 决定：
+
+┌──────┬──────┬──────────────────────────────────────┐
+│ CPOL │ CPHA │ 说明                                 │
+├──────┼──────┼──────────────────────────────────────┤
+│  0   │  0   │ 时钟空闲=低，第1个边沿采样（上升沿）│
+│  0   │  1   │ 时钟空闲=低，第2个边沿采样（下降沿）│
+│  1   │  0   │ 时钟空闲=高，第1个边沿采样（下降沿）│
+│  1   │  1   │ 时钟空闲=高，第2个边沿采样（上升沿）│
+└──────┴──────┴──────────────────────────────────────┘
+
+模式0（CPOL=0, CPHA=0）最常用：
+CS   ────┐                                   ┌────
+         └───────────────────────────────────┘
+
+SCK  ────┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌────
+         └─┘└─┘└─┘└─┘└─┘└─┘└─┘└─┘└─┘
+            ↑采样
+
+MOSI ────&lt;D7&gt;&lt;D6&gt;&lt;D5&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt;D1&gt;&lt;D0&gt;──
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - SPI 软件模拟（模式0）</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>#include &lt;reg52.h&gt;
+
+sbit SCK  = P1^5;
+sbit MOSI = P1^6;
+sbit MISO = P1^7;
+sbit CS   = P1^4;
+
+// SPI 发送并接收一个字节（全双工）
+unsigned char spi_transfer(unsigned char dat) {
+    unsigned char i, recv = 0;
+    for(i = 0; i < 8; i++) {
+        MOSI = (dat & 0x80) ? 1 : 0;  // MSB 先发
+        dat <<= 1;
+        SCK = 1;                       // 上升沿
+        recv <<= 1;
+        if(MISO) recv |= 0x01;         // 采样 MISO
+        SCK = 0;                       // 下降沿
+    }
+    return recv;
+}
+
+// 写寄存器
+void spi_write_reg(unsigned char reg, unsigned char dat) {
+    CS = 0;                   // 片选
+    spi_transfer(reg);        // 发送寄存器地址
+    spi_transfer(dat);        // 发送数据
+    CS = 1;                   // 取消片选
+}
+
+// 读寄存器
+unsigned char spi_read_reg(unsigned char reg) {
+    unsigned char dat;
+    CS = 0;
+    spi_transfer(reg | 0x80); // 最高位=1 表示读
+    dat = spi_transfer(0xFF); // 发送空数据，接收返回值
+    CS = 1;
+    return dat;
+}</code></pre>
+                </div>
+
+                <div class="info-card tip">
+                    <div class="info-card-title"><span class="icon">💡</span> SPI vs I2C 对比</div>
+                    <div class="table-wrapper">
+                        <table>
+                            <tr>
+                                <th>特性</th>
+                                <th>SPI</th>
+                                <th>I2C</th>
+                            </tr>
+                            <tr><td>速度</td><td>快（MHz级）</td><td>慢（kHz级）</td></tr>
+                            <tr><td>线数</td><td>4线 + 每设备1根CS</td><td>2线（共享）</td></tr>
+                            <tr><td>设备寻址</td><td>CS 硬件选择</td><td>地址软件选择</td></tr>
+                            <tr><td>通信方式</td><td>全双工</td><td>半双工</td></tr>
+                            <tr><td>上拉电阻</td><td>不需要</td><td>必须</td></tr>
+                            <tr><td>适用场景</td><td>Flash、SD卡、屏幕</td><td>传感器、EEPROM</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subsection" id="protocol-onewire">
+                <h3 class="subsection-title">4.5 1-Wire（单总线）</h3>
+
+                <p>1-Wire 只需一根数据线，常见于 DS18B20 温度传感器。</p>
+
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">基本概念</h4>
+                <div class="ascii-diagram">
+                    <pre>
+1-Wire 连接（超简单）：
+
+     VDD (5V/3.3V)
+       │
+      [R] 4.7kΩ 上拉电阻
+       │
+   ────┴──── DQ（数据线）
+       │
+   ┌───┴───┐
+   │DS18B20│
+   └───┬───┘
+       │
+      GND
+
+只需 1 根数据线 + 电源 + 地！
+（寄生供电模式甚至可以不接 VDD）
+                    </pre>
+                </div>
+
+                <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">通信时序</h4>
+                <div class="ascii-diagram">
+                    <pre>
+1-Wire 基本操作：
+
+1. 复位脉冲（主机发）+ 存在脉冲（从机应答）
+   主机拉低 480μs → 释放 → 从机拉低 60-240μs
+   DQ ──┐           ┌─────┐     ┌────────
+        └───────────┘     └─────┘
+        │← 480μs →│      │←存在脉冲→│
+
+2. 写 0：主机拉低 60-120μs
+   DQ ──┐                    ┌────────
+        └────────────────────┘
+
+3. 写 1：主机拉低 1-15μs，然后释放
+   DQ ──┐     ┌──────────────────────
+        └─────┘
+
+4. 读：主机拉低 1μs，然后在 15μs 内采样
+   DQ ──┐  ┌───── 从机拉高=1，保持低=0
+        └──┘ ↑
+           采样点
+                    </pre>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">C51 - DS18B20 温度读取</span>
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                    </div>
+                    <pre><code>#include &lt;reg52.h&gt;
+
+sbit DQ = P3^7;
+
+void delay_us(unsigned int us) {
+    while(us--);
+}
+
+// 复位并检测存在
+unsigned char ds18b20_reset() {
+    unsigned char presence;
+    DQ = 0;
+    delay_us(480);    // 拉低 480μs
+    DQ = 1;
+    delay_us(60);     // 等待
+    presence = DQ;    // 读取存在脉冲（0=设备存在）
+    delay_us(420);    // 等待复位完成
+    return presence;
+}
+
+// 写一个字节
+void ds18b20_write_byte(unsigned char dat) {
+    unsigned char i;
+    for(i = 0; i < 8; i++) {
+        DQ = 0;
+        delay_us(2);
+        DQ = dat & 0x01;  // LSB 先发
+        delay_us(60);
+        DQ = 1;
+        dat >>= 1;
+    }
+}
+
+// 读一个字节
+unsigned char ds18b20_read_byte() {
+    unsigned char i, dat = 0;
+    for(i = 0; i < 8; i++) {
+        DQ = 0;
+        delay_us(2);
+        DQ = 1;
+        delay_us(8);
+        dat >>= 1;
+        if(DQ) dat |= 0x80;
+        delay_us(50);
+    }
+    return dat;
+}
+
+// 读取温度（返回 0.1℃ 为单位）
+int ds18b20_read_temp() {
+    unsigned char LSB, MSB;
+    int temp;
+
+    ds18b20_reset();
+    ds18b20_write_byte(0xCC);  // 跳过 ROM
+    ds18b20_write_byte(0x44);  // 启动温度转换
+
+    delay_us(750);  // 等待转换完成（约 750ms）
+
+    ds18b20_reset();
+    ds18b20_write_byte(0xCC);  // 跳过 ROM
+    ds18b20_write_byte(0xBE);  // 读取暂存器
+
+    LSB = ds18b20_read_byte();
+    MSB = ds18b20_read_byte();
+
+    temp = (MSB << 8) | LSB;
+    return temp * 10 / 16;  // 转换为 0.1℃
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="subsection" id="protocol-summary">
+                <h3 class="subsection-title">4.6 协议选择指南</h3>
+
+                <div class="ascii-diagram">
+                    <pre>
+如何选择通信协议？
+
+                    ┌─────────────────────┐
+                    │  需要和外设通信？    │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ↓                ↓                ↓
+        ┌─────────┐      ┌─────────┐      ┌─────────┐
+        │ 调试打印 │      │  传感器  │      │ 存储/屏幕│
+        └────┬────┘      └────┬────┘      └────┬────┘
+             │                │                │
+             ↓                ↓                ↓
+         ┌──────┐    ┌───────────────┐    ┌──────┐
+         │ UART │    │ 设备自带协议？ │    │ SPI  │
+         └──────┘    └───────┬───────┘    └──────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ↓              ↓              ↓
+         ┌────────┐    ┌─────────┐    ┌─────────┐
+         │ DS18B20│    │ 大多数  │    │ 特殊设备│
+         │→1-Wire │    │→ I2C   │    │→查手册  │
+         └────────┘    └─────────┘    └─────────┘
+                    </pre>
+                </div>
+
+                <div class="info-card tip">
+                    <div class="info-card-title"><span class="icon">🎯</span> 实用建议</div>
+                    <ul>
+                        <li><strong>初学者</strong> → 先学 UART（最简单，调试必备）</li>
+                        <li><strong>接传感器</strong> → 学 I2C（用得最多）</li>
+                        <li><strong>接屏幕/存储</strong> → 学 SPI（速度快）</li>
+                        <li><strong>特定芯片</strong> → 按手册来（如 DS1302 是 3 线 SPI 变种）</li>
+                    </ul>
+                </div>
+
+                <div class="collapsible">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+                        <span>📝 自测：区分各协议的关键点？</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="table-wrapper">
+                            <table>
+                                <tr>
+                                    <th>问题</th>
+                                    <th>答案</th>
+                                </tr>
+                                <tr><td>UART 需要时钟线吗？</td><td>不需要，靠波特率同步</td></tr>
+                                <tr><td>I2C 为什么需要上拉？</td><td>开漏输出，需外部拉高</td></tr>
+                                <tr><td>SPI 怎么选择从机？</td><td>用 CS 线（低有效）</td></tr>
+                                <tr><td>谁是 MSB 先发？</td><td>I2C、SPI 是 MSB；UART、1-Wire 是 LSB</td></tr>
+                                <tr><td>哪个协议最快？</td><td>SPI（可达 MHz）</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="section" id="resources">
             <header class="section-header">
                 <span class="section-icon">🎓</span>
@@ -1332,20 +2634,20 @@ TXD (P3.1) 引脚波形：
                 <h3 class="subsection-title">视频课程</h3>
 
                 <div class="resource-grid">
-                    <a href="https://www.bilibili.com/video/BV1Vx411n7tC/" target="_blank" class="resource-card">
+                    <a href="https://www.bilibili.com/video/BV18p411Z7ce/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">🎬</div>
-                        <div class="resource-card-title">数电基础（只看前 5 讲）</div>
+                        <div class="resource-card-title">数电基础（清华 王红）</div>
                         <div class="resource-card-desc">数字信号、逻辑电平、时序图等核心概念</div>
                     </a>
-                    <a href="https://www.bilibili.com/video/BV1TL4y1379T/" target="_blank" class="resource-card">
-                        <div class="resource-card-icon">📺</div>
-                        <div class="resource-card-title">51单片机入门教程</div>
-                        <div class="resource-card-desc">郭天祥/江科大 经典 51 教程</div>
-                    </a>
                     <a href="https://www.bilibili.com/video/BV1Mb411e7re/" target="_blank" class="resource-card">
+                        <div class="resource-card-icon">📺</div>
+                        <div class="resource-card-title">江协科技 51单片机</div>
+                        <div class="resource-card-desc">2020版 从零开始入门，B站最热门教程</div>
+                    </a>
+                    <a href="https://www.bilibili.com/video/BV1nx411A7KA/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">📖</div>
-                        <div class="resource-card-title">普中 51 单片机教程</div>
-                        <div class="resource-card-desc">GPIO、UART、I2C 通信实战</div>
+                        <div class="resource-card-title">郭天祥 十天学会单片机</div>
+                        <div class="resource-card-desc">经典入门教程，配套新概念教材</div>
                     </a>
                 </div>
             </div>
