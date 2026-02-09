@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数字电路零基础快速通关 - 嵌入式通信专用版</title>
+    <title>数字电路零基础快速通关 - 51单片机入门专用版</title>
     <style>
         :root {
             --primary: #3b82f6;
@@ -697,7 +697,7 @@
     <!-- 顶部导航 -->
     <nav class="top-nav">
         <span class="emoji">🔌</span>
-        <h1>数字电路零基础快速通关 - 嵌入式通信专用版</h1>
+        <h1>数字电路零基础快速通关 - 51单片机入门专用版</h1>
     </nav>
 
     <!-- 阅读进度条 -->
@@ -800,7 +800,7 @@
             <div class="subsection" id="level">
                 <h3 class="subsection-title">1.2 电平标准（最基础但最重要）</h3>
 
-                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">TTL 电平（5V 系统，如 Arduino）</h4>
+                <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">TTL 电平（5V 系统，如 51单片机）</h4>
                 <div class="ascii-diagram">
                     <pre>
 输入：
@@ -828,28 +828,28 @@ VDD = 3.3V 时：
 
                 <div class="code-block">
                     <div class="code-header">
-                        <span class="code-lang">C - STM32 GPIO 示例</span>
+                        <span class="code-lang">C51 - 51单片机 GPIO 示例</span>
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                     </div>
-                    <pre><code>// STM32 GPIO 输出高电平
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-// 此时 PA5 引脚电压 ≈ 3.3V
+                    <pre><code>// 51单片机 GPIO 输出高电平
+P1_0 = 1;  // 或 P1 |= 0x01;
+// 此时 P1.0 引脚电压 ≈ 5V
 
 // 输出低电平
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-// 此时 PA5 引脚电压 ≈ 0V</code></pre>
+P1_0 = 0;  // 或 P1 &= ~0x01;
+// 此时 P1.0 引脚电压 ≈ 0V</code></pre>
                 </div>
 
                 <div class="info-card danger">
                     <div class="info-card-title"><span class="icon">❗</span> 关键问题：5V 和 3.3V 设备能直接连接吗？</div>
                     <div class="ascii-diagram">
                         <pre>
-Arduino (5V) → STM32 (3.3V)  ❌ 危险！会烧坏 STM32
-STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
+51单片机 (5V) → STM32 (3.3V)  ❌ 危险！会烧坏 3.3V 器件
+STM32 (3.3V) → 51单片机 (5V)  ⚠️  可能无法识别为高电平
 
 解决方案：
-1. 使用电平转换芯片（如 TXS0108）
-2. 使用分压电阻
+1. 使用电平转换芯片（如 TXS0108、74HC245）
+2. 使用分压电阻（5V→3.3V）
 3. 选择同电平设备
                         </pre>
                     </div>
@@ -864,7 +864,7 @@ STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
                 <div class="ascii-diagram">
                     <pre>
 电路结构：
-        VDD (3.3V)
+        VDD (5V)
           │
          [P-MOS] ← 控制信号
           │
@@ -875,7 +875,7 @@ STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
          GND
 
 工作原理：
-  输出 1：P-MOS 导通，N-MOS 关断 → 引脚连到 VDD → 3.3V
+  输出 1：P-MOS 导通，N-MOS 关断 → 引脚连到 VDD → 5V
   输出 0：P-MOS 关断，N-MOS 导通 → 引脚连到 GND → 0V
                     </pre>
                 </div>
@@ -894,7 +894,7 @@ STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
                 <div class="ascii-diagram">
                     <pre>
 电路结构：
-        VDD (3.3V)
+        VDD (5V)
           │
          [上拉电阻 R] ← 外部提供！
           │
@@ -906,7 +906,7 @@ STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
 
 工作原理：
   输出 0：N-MOS 导通 → 引脚连到 GND → 0V
-  输出 1：N-MOS 关断 → 引脚被上拉电阻拉到 VDD → 3.3V
+  输出 1：N-MOS 关断 → 引脚被上拉电阻拉到 VDD → 5V
                     </pre>
                 </div>
 
@@ -1098,16 +1098,16 @@ MISO ────&lt;D7&gt;&lt;D6&gt;&lt;D5&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt
             <div class="subsection" id="exp1">
                 <h3 class="subsection-title">实验 1：LED 闪烁（理解电平输出）</h3>
 
-                <p><strong>材料：</strong>Arduino Uno 或任意开发板、LED + 220Ω 电阻</p>
+                <p><strong>材料：</strong>STC89C52 开发板（或任意 51 单片机开发板）、LED + 1kΩ 限流电阻</p>
 
                 <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">电路连接</h4>
                 <div class="ascii-diagram">
                     <pre>
-  GPIO Pin 13
+  P1.0 引脚
       │
-     [R] 220Ω
+     [R] 1kΩ
       │
-     [LED] ← 长脚接正极
+     [LED] ← 长脚（阳极）接电阻
       │
      GND
                     </pre>
@@ -1115,27 +1115,36 @@ MISO ────&lt;D7&gt;&lt;D6&gt;&lt;D5&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt
 
                 <div class="code-block">
                     <div class="code-header">
-                        <span class="code-lang">Arduino</span>
+                        <span class="code-lang">C51 - LED 闪烁</span>
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                     </div>
-                    <pre><code>void setup() {
-    pinMode(13, OUTPUT);  // 设置为推挽输出
+                    <pre><code>#include &lt;reg52.h&gt;
+
+sbit LED = P1^0;  // 定义 P1.0 为 LED 控制引脚
+
+void delay_ms(unsigned int ms) {
+    unsigned int i, j;
+    for(i = ms; i > 0; i--)
+        for(j = 110; j > 0; j--);  // 12MHz 晶振约 1ms
 }
 
-void loop() {
-    digitalWrite(13, HIGH);  // 输出 5V → LED 亮
-    delay(500);
-    digitalWrite(13, LOW);   // 输出 0V → LED 灭
-    delay(500);
+void main() {
+    while(1) {
+        LED = 0;  // 输出低电平 → LED 亮（共阳极接法）
+        delay_ms(500);
+        LED = 1;  // 输出高电平 → LED 灭
+        delay_ms(500);
+    }
 }</code></pre>
                 </div>
 
                 <div class="info-card tip">
                     <div class="info-card-title"><span class="icon">🔧</span> 用万用表测量</div>
                     <ul>
-                        <li>LED 亮时：Pin 13 电压 ≈ 5V</li>
-                        <li>LED 灭时：Pin 13 电压 ≈ 0V</li>
+                        <li>LED 灭时：P1.0 电压 ≈ 5V（高电平）</li>
+                        <li>LED 亮时：P1.0 电压 ≈ 0V（低电平）</li>
                     </ul>
+                    <p style="margin-top: 0.5rem;"><strong>注意：</strong>51单片机 I/O 口灌电流能力强，拉电流能力弱，常用低电平点亮 LED。</p>
                 </div>
             </div>
 
@@ -1148,9 +1157,9 @@ void loop() {
                     <pre>
      5V
       │
-     [R] 10kΩ ← 上拉电阻
+     [R] 10kΩ ← 上拉电阻（51单片机内部已有弱上拉）
       │
-  ────┴──── Pin 2 (INPUT)
+  ────┴──── P3.2 (INT0)
       │
     [按键]
       │
@@ -1160,20 +1169,30 @@ void loop() {
 
                 <div class="code-block">
                     <div class="code-header">
-                        <span class="code-lang">Arduino</span>
+                        <span class="code-lang">C51 - 按键检测</span>
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                     </div>
-                    <pre><code>void setup() {
-    pinMode(2, INPUT);      // 外部上拉
-    // 或者 pinMode(2, INPUT_PULLUP); // 内部上拉
-    Serial.begin(9600);
-}
+                    <pre><code>#include &lt;reg52.h&gt;
 
-void loop() {
-    int val = digitalRead(2);
-    Serial.println(val);  // 未按下=1，按下=0
-    delay(100);
+sbit KEY = P3^2;   // 按键接 P3.2
+sbit LED = P1^0;   // LED 接 P1.0
+
+void main() {
+    KEY = 1;  // 设置为输入（写1使能内部上拉）
+
+    while(1) {
+        if(KEY == 0) {    // 按键按下（低电平）
+            LED = 0;      // 点亮 LED
+        } else {          // 按键松开（高电平）
+            LED = 1;      // 熄灭 LED
+        }
+    }
 }</code></pre>
+                </div>
+
+                <div class="info-card tip">
+                    <div class="info-card-title"><span class="icon">💡</span> 51单片机 I/O 特点</div>
+                    <p>51单片机 P1-P3 口内部有<strong>弱上拉电阻</strong>（约 40kΩ），读取前需先写 1。外部按键可不加上拉电阻，但加上会更稳定。</p>
                 </div>
             </div>
 
@@ -1183,28 +1202,43 @@ void loop() {
 
                 <div class="info-card info">
                     <div class="info-card-title"><span class="icon">💻</span> 如果没有硬件</div>
-                    <p>使用在线模拟器：<a href="https://wokwi.com/" target="_blank">Wokwi</a>（Arduino 在线仿真）</p>
+                    <p>使用仿真软件：<strong>Proteus</strong> 或 <strong>Keil 调试模式</strong>（可观察虚拟示波器）</p>
                 </div>
 
                 <div class="code-block">
                     <div class="code-header">
-                        <span class="code-lang">Arduino - 发送方波</span>
+                        <span class="code-lang">C51 - 串口发送方波</span>
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                     </div>
-                    <pre><code>void setup() {
-    Serial.begin(9600);
+                    <pre><code>#include &lt;reg52.h&gt;
+
+void uart_init() {
+    SCON = 0x50;   // 8位数据，可变波特率
+    TMOD |= 0x20;  // 定时器1，模式2（自动重装）
+    TH1 = 0xFD;    // 波特率 9600（11.0592MHz 晶振）
+    TL1 = 0xFD;
+    TR1 = 1;       // 启动定时器1
 }
 
-void loop() {
-    Serial.write(0x55);  // 发送 0b01010101（方波）
-    delay(100);
+void uart_send(unsigned char dat) {
+    SBUF = dat;
+    while(!TI);    // 等待发送完成
+    TI = 0;        // 清除发送标志
+}
+
+void main() {
+    uart_init();
+    while(1) {
+        uart_send(0x55);  // 发送 0b01010101（方波）
+        // 可用示波器观察 TXD (P3.1) 引脚波形
+    }
 }</code></pre>
                 </div>
 
                 <h4 style="margin: 1rem 0 0.5rem; color: var(--primary);">逻辑分析仪抓取结果</h4>
                 <div class="ascii-diagram">
                     <pre>
-TX 引脚波形：
+TXD (P3.1) 引脚波形：
   ─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌───
    └─┘ └─┘ └─┘ └─┘ └─┘
    起  1  0  1  0  1  0  1  0  停
@@ -1222,7 +1256,7 @@ TX 引脚波形：
             </header>
 
             <div class="subsection">
-                <h3 class="subsection-title">3.1 引脚定义表（STM32F103C8T6）</h3>
+                <h3 class="subsection-title">3.1 引脚定义表（STC89C52）</h3>
 
                 <div class="table-wrapper">
                     <table>
@@ -1231,25 +1265,27 @@ TX 引脚波形：
                             <th>名称</th>
                             <th>功能</th>
                         </tr>
-                        <tr><td>7</td><td>VDDA</td><td>模拟电源（3.3V）</td></tr>
-                        <tr><td>8</td><td>VSSA</td><td>模拟地</td></tr>
-                        <tr><td>9</td><td>PA0</td><td>GPIO / UART4_TX / ADC0</td></tr>
-                        <tr><td>10</td><td>PA1</td><td>GPIO / UART4_RX / ADC1</td></tr>
-                        <tr><td>13</td><td>PA4</td><td>GPIO / SPI1_NSS / ADC4</td></tr>
-                        <tr><td>14</td><td>PA5</td><td>GPIO / SPI1_SCK / ADC5</td></tr>
-                        <tr><td>15</td><td>PA6</td><td>GPIO / SPI1_MISO / ADC6</td></tr>
-                        <tr><td>16</td><td>PA7</td><td>GPIO / SPI1_MOSI / ADC7</td></tr>
-                        <tr><td>29</td><td>PA9</td><td>GPIO / UART1_TX</td></tr>
-                        <tr><td>30</td><td>PA10</td><td>GPIO / UART1_RX</td></tr>
+                        <tr><td>1</td><td>P1.0</td><td>GPIO（通用 I/O）</td></tr>
+                        <tr><td>2-8</td><td>P1.1-P1.7</td><td>GPIO（通用 I/O）</td></tr>
+                        <tr><td>9</td><td>RST</td><td>复位（高电平复位）</td></tr>
+                        <tr><td>10</td><td>P3.0 / RXD</td><td>GPIO / 串口接收</td></tr>
+                        <tr><td>11</td><td>P3.1 / TXD</td><td>GPIO / 串口发送</td></tr>
+                        <tr><td>12</td><td>P3.2 / INT0</td><td>GPIO / 外部中断0</td></tr>
+                        <tr><td>13</td><td>P3.3 / INT1</td><td>GPIO / 外部中断1</td></tr>
+                        <tr><td>14</td><td>P3.4 / T0</td><td>GPIO / 定时器0外部输入</td></tr>
+                        <tr><td>15</td><td>P3.5 / T1</td><td>GPIO / 定时器1外部输入</td></tr>
+                        <tr><td>18-19</td><td>XTAL1/XTAL2</td><td>晶振输入（常用 11.0592MHz）</td></tr>
+                        <tr><td>20</td><td>GND</td><td>电源地</td></tr>
+                        <tr><td>40</td><td>VCC</td><td>电源正极（5V）</td></tr>
                     </table>
                 </div>
 
                 <div class="info-card tip">
                     <div class="info-card-title"><span class="icon">📖</span> 如何使用</div>
                     <ol>
-                        <li>找到想用的功能（如 UART1）</li>
-                        <li>查表找到对应引脚（PA9=TX, PA10=RX）</li>
-                        <li>配置引脚复用功能</li>
+                        <li>找到想用的功能（如串口 UART）</li>
+                        <li>查表找到对应引脚（P3.0=RXD, P3.1=TXD）</li>
+                        <li>51单片机引脚功能固定，无需配置复用</li>
                     </ol>
                 </div>
             </div>
@@ -1266,19 +1302,20 @@ TX 引脚波形：
                             <th>最大值</th>
                             <th>单位</th>
                         </tr>
-                        <tr><td>工作电压 VDD</td><td>2.0</td><td>3.3</td><td>3.6</td><td>V</td></tr>
-                        <tr><td>GPIO 输出电流</td><td>-</td><td>-</td><td>25</td><td>mA</td></tr>
-                        <tr><td>GPIO 总电流</td><td>-</td><td>-</td><td>120</td><td>mA</td></tr>
-                        <tr><td>输入高电平 VIH</td><td>2.0</td><td>-</td><td>-</td><td>V</td></tr>
-                        <tr><td>输入低电平 VIL</td><td>-</td><td>-</td><td>0.8</td><td>V</td></tr>
+                        <tr><td>工作电压 VCC</td><td>4.0</td><td>5.0</td><td>5.5</td><td>V</td></tr>
+                        <tr><td>单个 I/O 灌电流</td><td>-</td><td>-</td><td>20</td><td>mA</td></tr>
+                        <tr><td>单个 I/O 拉电流</td><td>-</td><td>-</td><td>1</td><td>mA</td></tr>
+                        <tr><td>输入高电平 VIH</td><td>2.0</td><td>-</td><td>VCC+0.5</td><td>V</td></tr>
+                        <tr><td>输入低电平 VIL</td><td>-0.5</td><td>-</td><td>0.8</td><td>V</td></tr>
                     </table>
                 </div>
 
                 <div class="info-card warning">
                     <div class="info-card-title"><span class="icon">💡</span> 关键信息</div>
                     <ul>
-                        <li>LED 需要 20mA → 可以直接驱动</li>
-                        <li>继电器需要 100mA → 需要三极管驱动</li>
+                        <li><strong>灌电流强</strong>（20mA）→ 用低电平驱动 LED（LED 接 VCC）</li>
+                        <li><strong>拉电流弱</strong>（1mA）→ 不能用高电平直接驱动 LED</li>
+                        <li>驱动继电器、电机 → 需要三极管或驱动芯片（如 ULN2003）</li>
                     </ul>
                 </div>
             </div>
@@ -1300,37 +1337,37 @@ TX 引脚波形：
                         <div class="resource-card-title">数电基础（只看前 5 讲）</div>
                         <div class="resource-card-desc">数字信号、逻辑电平、时序图等核心概念</div>
                     </a>
-                    <a href="https://www.bilibili.com/video/BV1th411z7sn/" target="_blank" class="resource-card">
+                    <a href="https://www.bilibili.com/video/BV1TL4y1379T/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">📺</div>
-                        <div class="resource-card-title">STM32 入门教程</div>
-                        <div class="resource-card-desc">GPIO 推挽/开漏输出实战</div>
+                        <div class="resource-card-title">51单片机入门教程</div>
+                        <div class="resource-card-desc">郭天祥/江科大 经典 51 教程</div>
                     </a>
-                    <a href="https://doc.embedfire.com/" target="_blank" class="resource-card">
+                    <a href="https://www.bilibili.com/video/BV1Mb411e7re/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">📖</div>
-                        <div class="resource-card-title">野火 STM32 教程</div>
-                        <div class="resource-card-desc">GPIO、UART 通信详解</div>
+                        <div class="resource-card-title">普中 51 单片机教程</div>
+                        <div class="resource-card-desc">GPIO、UART、I2C 通信实战</div>
                     </a>
                 </div>
             </div>
 
             <div class="subsection">
-                <h3 class="subsection-title">在线仿真工具（无需硬件）</h3>
+                <h3 class="subsection-title">开发工具</h3>
 
                 <div class="resource-grid">
-                    <a href="https://wokwi.com/" target="_blank" class="resource-card">
+                    <a href="https://www.keil.com/c51/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">⚡</div>
-                        <div class="resource-card-title">Wokwi</div>
-                        <div class="resource-card-desc">Arduino/ESP32 在线仿真，内置逻辑分析仪</div>
+                        <div class="resource-card-title">Keil C51</div>
+                        <div class="resource-card-desc">51单片机官方开发环境，编译+调试一体</div>
                     </a>
-                    <a href="https://falstad.com/circuit/" target="_blank" class="resource-card">
+                    <a href="https://www.labcenter.com/" target="_blank" class="resource-card">
                         <div class="resource-card-icon">🔧</div>
-                        <div class="resource-card-title">Falstad Circuit Simulator</div>
-                        <div class="resource-card-desc">电路动画模拟，直观理解电流流向</div>
+                        <div class="resource-card-title">Proteus 仿真</div>
+                        <div class="resource-card-desc">无需硬件，仿真 51 单片机电路</div>
                     </a>
-                    <a href="https://logic.ly/demo/" target="_blank" class="resource-card">
-                        <div class="resource-card-icon">🧩</div>
-                        <div class="resource-card-title">Logic.ly</div>
-                        <div class="resource-card-desc">可视化搭建数字逻辑电路</div>
+                    <a href="https://www.stcmcudata.com/" target="_blank" class="resource-card">
+                        <div class="resource-card-icon">📚</div>
+                        <div class="resource-card-title">STC 官方资料</div>
+                        <div class="resource-card-desc">STC 系列芯片数据手册下载</div>
                     </a>
                 </div>
             </div>
@@ -1389,9 +1426,9 @@ TX 引脚波形：
                             <th>任务</th>
                             <th>材料</th>
                         </tr>
-                        <tr><td>Day 8-9</td><td>LED 闪烁实验</td><td>Arduino + LED</td></tr>
+                        <tr><td>Day 8-9</td><td>LED 闪烁实验</td><td>51单片机开发板 + LED</td></tr>
                         <tr><td>Day 10-11</td><td>按键输入实验</td><td>按键 + 上拉电阻</td></tr>
-                        <tr><td>Day 12-14</td><td>UART 收发实验</td><td>USB-TTL 模块</td></tr>
+                        <tr><td>Day 12-14</td><td>UART 收发实验</td><td>USB-TTL 模块（CH340）</td></tr>
                     </table>
                 </div>
             </div>
@@ -1405,8 +1442,8 @@ TX 引脚波形：
                             <th>任务</th>
                             <th>文档</th>
                         </tr>
-                        <tr><td>Day 15-17</td><td>读 STM32 数据手册</td><td>引脚定义、电气特性</td></tr>
-                        <tr><td>Day 18-19</td><td>读通信外设章节</td><td>UART、SPI 寄存器</td></tr>
+                        <tr><td>Day 15-17</td><td>读 STC89C52 数据手册</td><td>引脚定义、电气特性</td></tr>
+                        <tr><td>Day 18-19</td><td>读通信外设章节</td><td>UART、定时器寄存器</td></tr>
                         <tr><td>Day 20-21</td><td>综合项目</td><td>用 UART 控制 LED</td></tr>
                     </table>
                 </div>
@@ -1508,7 +1545,7 @@ DATA ───&lt;1&gt;&lt;0&gt;&lt;1&gt;&lt;0&gt;─
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-title">Day 6-7</div>
-                    <div class="timeline-content">买开发板跑 UART 例程</div>
+                    <div class="timeline-content">用 51 开发板跑 UART 例程（Keil + Proteus 仿真也行）</div>
                 </div>
             </div>
 
@@ -1525,7 +1562,7 @@ DATA ───&lt;1&gt;&lt;0&gt;&lt;1&gt;&lt;0&gt;─
 
         <!-- 页脚 -->
         <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-secondary);">
-            <p>📚 数字电路零基础快速通关 - 嵌入式通信专用版</p>
+            <p>📚 数字电路零基础快速通关 - 51单片机入门专用版</p>
             <p style="font-size: 0.9rem; margin-top: 0.5rem;">学习目标明确 · 内容精简实用 · 动手实践优先</p>
         </footer>
     </main>
