@@ -606,11 +606,11 @@
 
         /* 响应式 */
         @media (max-width: 1024px) {
-            .sidebar {
+            .sidebar.hidden {
                 transform: translateX(-100%);
             }
 
-            .sidebar.show {
+            .sidebar:not(.hidden) {
                 transform: translateX(0);
             }
 
@@ -623,7 +623,7 @@
                 left: 10px;
             }
 
-            .sidebar.show + .sidebar-toggle {
+            .sidebar:not(.hidden) + .sidebar-toggle {
                 left: 290px;
             }
 
@@ -961,12 +961,14 @@ STM32 (3.3V) → Arduino (5V)  ⚠️  可能无法识别
                 <h4 style="margin: 1.5rem 0 0.5rem; color: var(--primary);">下拉电阻（Pull-Down）</h4>
                 <div class="ascii-diagram">
                     <pre>
-  ────┬──── 信号线
+     VDD
       │
-    [开关] ← 未按下时，信号被下拉到 GND（读到 0）
-      │     按下时，信号接 VDD（读到 1）
-     [R] 10kΩ
+    [开关] ← 按下时，信号接 VDD（读到 1）
       │
+  ────┴──── 信号线 (GPIO 输入)
+      │
+     [R] 10kΩ ← 下拉电阻
+      │          未按下时，信号被下拉到 GND（读到 0）
      GND
                     </pre>
                 </div>
@@ -1055,7 +1057,7 @@ CLK  ────┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌┐ ┌
 MOSI ────&lt;D7&gt;&lt;D6&gt;&lt;D5&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt;D1&gt;&lt;D0&gt;──
          主机发送数据
 
-MISO ────&lt;D7&gt;&lt;D6&gt;&lt;D6&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt;D1&gt;&lt;D0&gt;──
+MISO ────&lt;D7&gt;&lt;D6&gt;&lt;D5&gt;&lt;D4&gt;&lt;D3&gt;&lt;D2&gt;&lt;D1&gt;&lt;D0&gt;──
          从机发送数据
 
 采样点：CLK 上升沿（↑）读取数据
