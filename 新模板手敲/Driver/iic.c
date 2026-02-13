@@ -4,7 +4,6 @@
 		中对单片机时钟频率的要求，进行代码调试和修改。
 */
 #include "iic.h"
-#include <STC15F2K60S2.H>
 #include "intrins.h"
 #define DELAY_TIME	5 //10
 
@@ -149,6 +148,7 @@ void Da_Write(unsigned char dat)
 	I2CWaitAck();
 	I2CSendByte(dat);//写入数字电压，DA可以转换为模拟电压
 	I2CWaitAck();
+	I2CStop();
 }
 
 //写入的数组，写入的起始位置，写入数据的个数（字节数）
@@ -180,23 +180,27 @@ void EEPROM_Write(unsigned char *str,unsigned char addr,unsigned num)
 	I2C_Delay(255);
 }
 
-////读取的数组，读取的起始位置，读取数据的个数（字节数）
-//void EEPROM_Write(unsigned char *str,unsigned char addr,unsigned num)
-//{
-//	I2CStart();
-//	I2CSendByte(0xa0);//选中AT24C02,并且写操作
-//	I2CWaitAck();
-//	I2CSendByte(addr);//写入起始地址
-//	I2CWaitAck();
-//	
-//	I2CStart();
-//	I2CSendByte(0xa1);//选中AT24C02,并且读取操作
-//	I2CWaitAck();
-//	//EA=0;
-//	while(num--)
-//	I2CSendByte(addr);//写入起始地址
-//	I2CWaitAck();
-//	
-//	
-//	
-//}
+//读取的数组，读取的起始位置，读取数据的个数（字节数）
+void EEPROM_Read(unsigned char *str,unsigned char addr,unsigned num)
+{
+	I2CStart();
+	I2CSendByte(0xa0);//选中AT24C02,并且写操作
+	I2CWaitAck();
+	I2CSendByte(addr);//写入起始地址
+	I2CWaitAck();
+	
+	I2CStart();
+	I2CSendByte(0xa1);//选中AT24C02,并且读取操作
+	I2CWaitAck();
+	EA=0;
+	while(num--)
+	{
+		*str ++ = I2CReceiveByte();
+		if(num)
+			I2CSendAck(0);
+		else
+			I2CSendAck(1);
+	}
+	I2CStop();
+	EA=1;
+}

@@ -426,6 +426,11 @@
               <FileType>1</FileType>
               <FilePath>..\Driver\iic.c</FilePath>
             </File>
+            <File>
+              <FileName>ultrasound.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\ultrasound.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

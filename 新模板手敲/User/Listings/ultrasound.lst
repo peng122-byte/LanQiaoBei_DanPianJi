@@ -1,0 +1,24 @@
+C51 COMPILER V9.59.0.0   ULTRASOUND                                                        02/13/2026 22:19:03 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE ULTRASOUND
+OBJECT MODULE PLACED IN .\Objects\ultrasound.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE ..\Driver\ultrasound.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver) DEBUG 
+                    -OBJECTEXTEND PRINT(.\Listings\ultrasound.lst) TABS(2) OBJECT(.\Objects\ultrasound.obj)
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

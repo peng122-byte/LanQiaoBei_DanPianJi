@@ -6,6 +6,7 @@
 ".\Objects\Init.obj",
 ".\Objects\ds1302.obj",
 ".\Objects\onewire.obj",
-".\Objects\iic.obj" 
+".\Objects\iic.obj",
+".\Objects\ultrasound.obj" 
 TO ".\Objects\V4T ÷«√" 
 PRINT(".\Listings\V4T ÷«√.m51") RAMSIZE(256) 
