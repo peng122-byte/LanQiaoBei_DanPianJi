@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2026 22:19:02 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              02/15/2026 13:26:23 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -16,168 +16,194 @@ line level    source
    6          #include "ds1302.h"
    7          #include "onewire.h"
    8          #include "iic.h"
-   9          pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
-  10          pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10};
-  11          idata unsigned char Seg_Pos = 0;
-  12          idata unsigned char Seg_Slow_Down;
-  13          
-  14          idata unsigned char Key_Val,Key_Old,Key_Up,Key_Down;
-  15          idata unsigned char Key_Slow_Down;
-  16          
-  17          //idata unsigned char Key_Down_Data , Key_Up_Data;//Key调试用
-  18          
-  19          idata unsigned char ucRtc[3] = {11,12,13};
-  20          idata unsigned char Time_Slow_Down;
-  21          
-  22          idata unsigned int Temperature_10x;
-  23          idata unsigned int Temperature_Slow_Down;
-  24          
-  25          idata unsigned char AD_1_Data_10x, AD_3_Data_10x;
-  26          idata unsigned char AD_DA_Slow_Down;
-  27          
-  28          pdata unsigned char EEPROM_Data_W[8] = {1,2,3,4,5,6,7,8};
-  29          pdata unsigned char EEPROM_Data_R[8] = {0,0,0,0,0,0,0,0};
-  30          
-  31          idata unsigned char Led_PWM = 0;      // PWM计数器 (0-9循环)
-  32          idata unsigned char Led_Level = 5;    // PWM占空比等级 (0-10, 5=50%)
-  33          
-  34          
-  35          void Key_Proc()
-  36          {
-  37   1        if(Key_Slow_Down < 10) return;
-  38   1        Key_Slow_Down = 0;
-  39   1        
-  40   1        Key_Val = Key_Read();
-  41   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);
-  42   1        Key_Up = ~ Key_Val & (Key_Val ^ Key_Old);
-  43   1        Key_Old = Key_Val;
-  44   1        /*测试按键*/
-  45   1      //  if(Key_Down != 0)
-  46   1      //    Key_Down_Data = Key_Down;
-  47   1      //  if(Key_Up != 0)
-  48   1      //    Key_Up_Data = Key_Up;
-  49   1      }
-  50          
-  51          
-  52          void Timer1_Isr(void) interrupt 3
-  53          {
-  54   1        Seg_Slow_Down ++;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2026 22:19:02 PAGE 2   
+   9          #include "ultrasound.h"
+  10          pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};
+  11          pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10};
+  12          idata unsigned char Seg_Pos = 0;
+  13          idata unsigned char Seg_Slow_Down;
+  14          
+  15          idata unsigned char Key_Val,Key_Old,Key_Up,Key_Down;
+  16          idata unsigned char Key_Slow_Down;
+  17          
+  18          idata unsigned char ucRtc[3] = {11,12,13};
+  19          idata unsigned char Time_Slow_Down;
+  20          
+  21          idata unsigned int Temperature_10x;
+  22          idata unsigned int Temperature_Slow_Down;
+  23          
+  24          idata unsigned char AD_1_Data_10x, AD_3_Data_10x;
+  25          idata unsigned char AD_DA_Slow_Down;
+  26          
+  27          pdata unsigned char EEPROM_Data_W[8] = {1,2,3,4,5,6,7,8};
+  28          pdata unsigned char EEPROM_Data_R[8] = {0,0,0,0,0,0,0,0};
+  29          
+  30          idata unsigned char Distance;
+  31          idata unsigned char Distance_Slow_Down;
+  32          
+  33          idata unsigned int Freq;
+  34          idata unsigned int Time_1s;
+  35          
+  36          idata unsigned char pwm_period;//累加对比
+  37          idata unsigned char pwm_compare = 6;//比较值，也就是亮度
+  38          
+  39          
+  40          void Key_Proc()
+  41          {
+  42   1        if(Key_Slow_Down < 10) return;
+  43   1        Key_Slow_Down = 0;
+  44   1      
+  45   1        Key_Val = Key_Read();
+  46   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);
+  47   1        Key_Up = ~ Key_Val & (Key_Val ^ Key_Old);
+  48   1        Key_Old = Key_Val;
+  49   1        if(Key_Down == 4)
+  50   1          pwm_compare= (++pwm_compare)%10;
+  51   1        
+  52   1      }
+  53          
+  54          
+C51 COMPILER V9.59.0.0   MAIN                                                              02/15/2026 13:26:23 PAGE 2   
 
-  55   1        Key_Slow_Down ++;
-  56   1        Time_Slow_Down ++;
-  57   1        Temperature_Slow_Down ++;
-  58   1        AD_DA_Slow_Down ++;
-  59   1        Seg_Pos = (++Seg_Pos) % 8;
-  60   1        if(Seg_Buf[Seg_Pos] > 20) 
-  61   1        {
-  62   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
-  63   2        }else
-  64   1        {
-  65   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
-  66   2        }
-  67   1        // ========== LED PWM亮度控制 ==========
-  68   1        if(++Led_PWM >= 10) Led_PWM = 0;  // 计数器循环 0-9
-  69   1      
-  70   1        if(Led_PWM < Led_Level)
-  71   1        {
-  72   2          Led_Disp(ucLed);  // 占空比内：显示LED
-  73   2        }
-  74   1        else
-  75   1       {
-  76   2        // 占空比外：关闭所有LED
-  77   2         P0 = 0xFF;  // LED全灭（根据硬件电路调整）
-  78   2         P2 = (P2 & 0x1F) | 0x80;
-  79   2         P2 &= 0x1F;
-  80   2       }
-  81   1      }
-  82          
-  83          
-  84          void Seg_Proc()
-  85          {
-  86   1        if(Seg_Slow_Down < 20) return;
-  87   1        Seg_Slow_Down = 0;
-  88   1        
-  89   1      }
-  90          
-  91          void Led_Proc()
-  92          {
-  93   1        if(Temperature_10x > 300)       // 温度 > 30°C
-  94   1          Led_Level = 9;              // 高亮
-  95   1        else if(Temperature_10x > 200)  // 温度 > 20°C
-  96   1          Led_Level = 5;              // 中等亮度
-  97   1        else
-  98   1          Led_Level = 2;              // 低亮度
-  99   1        Led_Disp(ucLed);
- 100   1      }
- 101          void Get_Time()
- 102          {
- 103   1        if(Time_Slow_Down < 100) return;
- 104   1        Time_Slow_Down = 0;
- 105   1        Read_Rtc(ucRtc);
- 106   1      }
- 107          
- 108          void Get_Temperature()
- 109          {
- 110   1        if(Temperature_Slow_Down <300) return;
- 111   1        Temperature_Slow_Down = 0;
- 112   1        Temperature_10x = rd_temperature() *10;
- 113   1        
+  55          void Timer1_Isr(void) interrupt 3
+  56          {
+  57   1        Seg_Slow_Down ++;
+  58   1        Key_Slow_Down ++;
+  59   1        Time_Slow_Down ++;
+  60   1        Temperature_Slow_Down ++;
+  61   1        AD_DA_Slow_Down ++;
+  62   1        Distance_Slow_Down ++;
+  63   1        Seg_Pos = (++Seg_Pos) % 8;
+  64   1        if(Seg_Buf[Seg_Pos] > 20)
+  65   1        {
+  66   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
+  67   2        }else
+  68   1        {
+  69   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
+  70   2        }
+  71   1        if(++Time_1s == 1000)
+  72   1        {
+  73   2          Time_1s = 0;
+  74   2          Freq = TH0 << 8|TL0;
+  75   2          TH0 = TL0 = 0;
+  76   2        }
+  77   1        //调光
+  78   1        pwm_period = (++ pwm_period )%10;
+  79   1        if(pwm_period<pwm_compare)
+  80   1          Led_Disp(ucLed);//如果不调光，要放在Led_Disp
+  81   1        else
+  82   1          Led_Off();
+  83   1        
+  84   1        
+  85   1        
+  86   1      }
+  87          
+  88          
+  89          void Seg_Proc()
+  90          {
+  91   1        if(Seg_Slow_Down < 20) return;
+  92   1        Seg_Slow_Down = 0;
+  93   1      
+  94   1      }
+  95          
+  96          void Led_Proc()
+  97          {
+  98   1        ucLed[0] = 1;
+  99   1        ucLed[1] = 0;
+ 100   1        ucLed[2] = 1;
+ 101   1        ucLed[3] = 0;
+ 102   1        ucLed[4] = 1;
+ 103   1        ucLed[5] = 0;
+ 104   1        ucLed[6] = 1;
+ 105   1        ucLed[7] = 0;
+ 106   1        //Led_Disp(ucLed);
+ 107   1      }
+ 108          
+ 109          void Get_Time()
+ 110          {
+ 111   1        if(Time_Slow_Down < 100) return;
+ 112   1        Time_Slow_Down = 0;
+ 113   1        Read_Rtc(ucRtc);
  114   1      }
  115          
- 116          void AD_DA()
-C51 COMPILER V9.59.0.0   MAIN                                                              02/13/2026 22:19:02 PAGE 3   
+ 116          void Get_Temperature()
+C51 COMPILER V9.59.0.0   MAIN                                                              02/15/2026 13:26:23 PAGE 3   
 
  117          {
- 118   1        if(AD_DA_Slow_Down < 120) return;
- 119   1        AD_DA_Slow_Down = 0;
- 120   1        AD_1_Data_10x = Ad_Read(0x41) *10/51;
- 121   1        AD_3_Data_10x = Ad_Read(0x43) *10/51;
- 122   1        Da_Write(3*51);
- 123   1        
- 124   1      }
- 125          
- 126          void Timer1_Init(void)    //1毫秒@12.000MHz
- 127          {
- 128   1        AUXR &= 0xBF;     //定时器时钟12T模式
- 129   1        TMOD &= 0x0F;     //设置定时器模式
- 130   1        TL1 = 0x18;       //设置定时初始值
- 131   1        TH1 = 0xFC;       //设置定时初始值
- 132   1        TF1 = 0;        //清除TF1标志
- 133   1        TR1 = 1;        //定时器1开始计时
- 134   1        ET1 = 1;        //使能定时器1中断
- 135   1        EA =1 ;
- 136   1      }
- 137          
- 138          
- 139          
- 140          
- 141          
- 142          void main()
- 143          {
- 144   1        System_Init();
- 145   1        Set_Rtc(ucRtc);
- 146   1        
- 147   1        Timer1_Init();
- 148   1        while(1)
- 149   1        {
- 150   2          Key_Proc();
- 151   2          Led_Proc();
- 152   2          Seg_Proc();
- 153   2          Get_Time();
- 154   2          Get_Temperature();
- 155   2          AD_DA();
- 156   2        }
- 157   1      }
+ 118   1        if(Temperature_Slow_Down <300) return;
+ 119   1        Temperature_Slow_Down = 0;
+ 120   1        Temperature_10x = rd_temperature() *10;
+ 121   1      
+ 122   1      }
+ 123          
+ 124          void AD_DA()
+ 125          {
+ 126   1        if(AD_DA_Slow_Down < 120) return;
+ 127   1        AD_DA_Slow_Down = 0;
+ 128   1        AD_1_Data_10x = Ad_Read(0x41) *10/51;
+ 129   1        AD_3_Data_10x = Ad_Read(0x43) *10/51;
+ 130   1        Da_Write(3*51);
+ 131   1      
+ 132   1      }
+ 133          
+ 134          void Distance_Get()
+ 135          {
+ 136   1        if(Distance_Slow_Down < 150) return;
+ 137   1        Distance_Slow_Down = 0;
+ 138   1        Distance = Ut_Wave_Data();
+ 139   1      }
+ 140          void Timer1_Init(void)
+ 141          {
+ 142   1        AUXR &= 0xBF;
+ 143   1        TMOD &= 0x0F;
+ 144   1        TL1 = 0x18;
+ 145   1        TH1 = 0xFC;
+ 146   1        TF1 = 0;
+ 147   1        TR1 = 1;
+ 148   1        ET1 = 1;
+ 149   1        EA = 1;
+ 150   1      }
+ 151          
+ 152          void Timer0_Init(void)    //1毫秒@12.000MHz
+ 153          {
+ 154   1        AUXR &= 0x7F;     //定时器时钟12T模式
+ 155   1        TMOD &= 0xF0;     //设置定时器模式
+ 156   1        TMOD |= 0x05;     //设置定时器模式,计数器不重装载
+ 157   1        TL0 = 0x00;       //设置定时初始值
+ 158   1        TH0 = 0x00;       //设置定时初始值
+ 159   1        TF0 = 0;        //清除TF0标志
+ 160   1        TR0 = 1;        //定时器0开始计时
+ 161   1      
+ 162   1      }
+ 163          
+ 164          
+ 165          void main()
+ 166          {
+ 167   1        System_Init();
+ 168   1        Set_Rtc(ucRtc);
+ 169   1        Timer0_Init();
+ 170   1        Timer1_Init();
+ 171   1        while(1)
+ 172   1        {
+ 173   2          Key_Proc();
+ 174   2          Led_Proc();
+ 175   2          Seg_Proc();
+ 176   2          Get_Time();
+ 177   2          Get_Temperature();
+ 178   2          AD_DA();
+C51 COMPILER V9.59.0.0   MAIN                                                              02/15/2026 13:26:23 PAGE 4   
+
+ 179   2          Distance_Get();
+ 180   2        }
+ 181   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    460    ----
+   CODE SIZE        =    531    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =     32    ----
    DATA SIZE        =   ----    ----
-   IDATA SIZE       =     20    ----
+   IDATA SIZE       =     26    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
 
