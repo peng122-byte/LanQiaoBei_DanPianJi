@@ -123,7 +123,7 @@ void Seg_Proc()
 			Seg_Buf[3] = 10;
 			Seg_Buf[4] = 10;
 			Seg_Buf[5] = 10;
-			Seg_Buf[6] = Voltage_Count /10 %10;
+			Seg_Buf[6] = (Voltage_Count /10 %10)?(Voltage_Count /10 %10):10;
 			Seg_Buf[7] = Voltage_Count /1 %10;
 		break;
 	}
