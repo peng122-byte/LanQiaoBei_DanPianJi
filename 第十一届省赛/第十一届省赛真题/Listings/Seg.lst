@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 19:22:39 PAGE 1   
+C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 20:01:19 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SEG
@@ -37,7 +37,7 @@ line level    source
   27            0xFF,   // 10=灭(全段熄灭)
   28            0xC1,//11-U
   29            0x8c,//12-P
-  30            0xAB,//13-n
+  30            0xC8,//13-n
   31            
   32            
   33          };
@@ -62,7 +62,7 @@ line level    source
   52   1        temp = P2 & 0x1f;
   53   1        P2 = temp;
   54   1      
-C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 19:22:39 PAGE 2   
+C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 20:01:19 PAGE 2   
 
   55   1        /* 位选：选中目标数码管位 */
   56   1        P0 = 0x01 << Wela;     // 左移Wela位，选中对应数码管

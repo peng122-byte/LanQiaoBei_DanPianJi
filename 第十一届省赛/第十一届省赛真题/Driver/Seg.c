@@ -27,7 +27,7 @@ pdata unsigned char Seg_Dula[] = {
 	0xFF,   // 10=灭(全段熄灭)
 	0xC1,//11-U
 	0x8c,//12-P
-	0xAB,//13-n
+	0xC8,//13-n
 	
 	
 };

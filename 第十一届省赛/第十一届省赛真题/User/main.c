@@ -133,18 +133,27 @@ void Seg_Proc()
 void Led_Proc()
 {
 	Voltage_Get = AD_3_Data_100x;
-	if(Voltage_Get >= Voltage_Set) Flag = 1;
+	if(Voltage_Get >= Voltage_Set) 
+	{
+		Time5000 = 0;
+		Flag = 1;
+	}
 	if((Flag) && (Voltage_Get < Voltage_Set))
 	{
 		Flag = 0;
 		Voltage_Count ++;
-	if(Time5000 == 5000) ucLed[0] = 1;
-		else ucLed[0] = 0;
+	}
+	if(Time5000 >= 5000) 
+	{
+		
+		ucLed[0] = 1;
+	}
+	else ucLed[0] = 0;
 	if(Voltage_Count%2) ucLed[1] = 1;
 		else ucLed[1] = 0;
 	if(Error >= 3) ucLed[2] = 1;
 		else ucLed[2] = 0;
-	}
+	
 }
 
 /**

@@ -1,0 +1,340 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE User\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver) DEBUG OBJECTEXTEND
+                    - PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /**
+   2           * @file    main.c
+   3           * @brief   蓝桥杯单片机竞赛综合模板 - 主程序
+   4           * @details MCU: STC15F2K60S2, 晶振: 12MHz
+   5           *          架构: 基于时间片的协作式任务调度器
+   6           *          功能: 时钟/温度/AD-DA/超声波/频率/PWM/串口
+   7           */
+   8          #include <STC15F2K60S2.H>
+   9          #include "LED.h"
+  10          #include "init.h"
+  11          #include "Seg.h"
+  12          #include "Key.h"
+  13          #include "iic.h"
+  14          
+  15          /* ==================== 全局变量定义 ==================== */
+  16          
+  17          idata unsigned long int uwTick;                          /* 系统节拍计数器(1ms递增，由Timer1中
+             -断驱动) */
+  18          
+  19          pdata unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};       /* LED状态数组(0=灭,1=亮)，对应L1~L8 */
+  20          pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10}; /* 数码管显示缓冲区(10=灭,0~9=数字,
+             -加','=带小数点) */
+  21          idata unsigned char Seg_Pos = 0;                         /* 当前扫描的数码管位(0~7循环) */
+  22          idata unsigned char Key_Val, Key_Old, Key_Up, Key_Down;  /* 按键状态：当前值/上次值/松开事�
+             -�/按下事件 */
+  23          idata unsigned int AD_3_Data_100x;        /* AD值(放大10倍，通道1光敏/通道3变阻器) */
+  24          pdata unsigned char EEPROM_Data_W[8] = {1,2,3,4,5,6,7,8}; /* EEPROM写入测试数据 */
+  25          pdata unsigned char EEPROM_Data_R[8] = {0,0,0,0,0,0,0,0}; /* EEPROM读取缓冲区 */
+  26          idata unsigned char Seg_Show_Mod;                         /* 数码管显示模式(0~5) */
+  27          idata unsigned char Voltage_E2PROM;
+  28          idata unsigned int Voltage_Get, Voltage_Set = 300;/*电压设置参数*/
+  29          idata unsigned char Voltage_Count;/*电压计数*/
+  30          idata unsigned int Time5000;//5秒
+  31          bit Flag;//下降沿标志位
+  32          idata unsigned char Error;//错误处理 
+  33          /* ==================== 任务处理函数 ==================== */
+  34          
+  35          /**
+  36           * @brief   按键处理任务(10ms周期)
+  37           * @note    按键检测采用"按下沿捕获"：
+  38           *          Key_Down = Key_Val & (Key_Val ^ Key_Old) —— 检测新按下
+  39           *          Key_Up   = ~Key_Val & (Key_Val ^ Key_Old) —— 检测释放
+  40           *
+  41           *          S4: 调节PWM占空比(0~9档循环)
+  42           *          S5: 切换数码管显示模式(0~5循环)
+  43           */
+  44          void Key_Proc()
+  45          {
+  46   1        Key_Val = Key_Read();                          // 读取当前按键值
+  47   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);      // 检测按下沿(由无到有)
+  48   1        Key_Up = ~Key_Val & (Key_Val ^ Key_Old);       // 检测释放沿(由有到无)
+  49   1        Key_Old = Key_Val;                              // 保存当前值供下次比较
+  50   1        switch(Key_Down)
+  51   1        {
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 2   
+
+  52   2          case 12:
+  53   2            if(++Seg_Show_Mod == 2) 
+  54   2            {
+  55   3              Voltage_E2PROM = Voltage_Set/10;
+  56   3              EEPROM_Write(&Voltage_E2PROM, 0, 1);
+  57   3            }
+  58   2            if(Seg_Show_Mod == 3) Seg_Show_Mod = 0;
+  59   2            Error = 0;
+  60   2            
+  61   2          break;
+  62   2          case 13:
+  63   2            if(Seg_Show_Mod == 2) 
+  64   2            {
+  65   3              Error = 0;
+  66   3              Voltage_Count = 0;
+  67   3            }
+  68   2            else Error ++;
+  69   2            
+  70   2          break;
+  71   2          case 16:
+  72   2            if(Seg_Show_Mod == 1) 
+  73   2            {
+  74   3              Error = 0;
+  75   3              Voltage_Set += 50;
+  76   3              if(Voltage_Set > 500) Voltage_Set = 0;
+  77   3            }
+  78   2            else Error ++ ;
+  79   2            
+  80   2          break;
+  81   2          case 17:
+  82   2            if(Seg_Show_Mod == 1) 
+  83   2            {
+  84   3              Error = 0;
+  85   3              if(Voltage_Set == 0) Voltage_Set = 500;
+  86   3              Voltage_Set -= 50;
+  87   3            }
+  88   2            else Error ++ ;
+  89   2          break;
+  90   2        }
+  91   1        
+  92   1      }
+  93          
+  94          
+  95          void Seg_Proc()
+  96          {
+  97   1        switch(Seg_Show_Mod)
+  98   1        {
+  99   2          case 0:
+ 100   2            Seg_Buf[0] = 11;
+ 101   2            Seg_Buf[1] = 10;
+ 102   2            Seg_Buf[2] = 10;
+ 103   2            Seg_Buf[3] = 10;
+ 104   2            Seg_Buf[4] = 10;
+ 105   2            Seg_Buf[5] = AD_3_Data_100x /100 %10 +',';
+ 106   2            Seg_Buf[6] = AD_3_Data_100x /10 %10;
+ 107   2            Seg_Buf[7] = AD_3_Data_100x /1 %10;
+ 108   2          break;
+ 109   2          case 1:
+ 110   2            Seg_Buf[0] = 12;
+ 111   2            Seg_Buf[1] = 10;
+ 112   2            Seg_Buf[2] = 10;
+ 113   2            Seg_Buf[3] = 10;
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 3   
+
+ 114   2            Seg_Buf[4] = 10;
+ 115   2            Seg_Buf[5] = Voltage_Set /100 %10 +',';
+ 116   2            Seg_Buf[6] = Voltage_Set /10 %10;
+ 117   2            Seg_Buf[7] = Voltage_Set /1 %10;
+ 118   2          break;
+ 119   2          case 2:
+ 120   2            Seg_Buf[0] = 13;
+ 121   2            Seg_Buf[1] = 10;
+ 122   2            Seg_Buf[2] = 10;
+ 123   2            Seg_Buf[3] = 10;
+ 124   2            Seg_Buf[4] = 10;
+ 125   2            Seg_Buf[5] = 10;
+ 126   2            Seg_Buf[6] = Voltage_Count /10 %10;
+ 127   2            Seg_Buf[7] = Voltage_Count /1 %10;
+ 128   2          break;
+ 129   2        }
+ 130   1      }
+ 131          
+ 132          
+ 133          void Led_Proc()
+ 134          {
+ 135   1        Voltage_Get = AD_3_Data_100x;
+ 136   1        if(Voltage_Get >= Voltage_Set) 
+ 137   1        {
+ 138   2          Time5000 = 0;
+ 139   2          Flag = 1;
+ 140   2        }
+ 141   1        if((Flag) && (Voltage_Get < Voltage_Set))
+ 142   1        {
+ 143   2          Flag = 0;
+ 144   2          Voltage_Count ++;
+ 145   2        }
+ 146   1        if(Time5000 >= 5000) 
+ 147   1        {
+ 148   2          
+ 149   2          ucLed[0] = 1;
+ 150   2        }
+ 151   1        else ucLed[0] = 0;
+ 152   1        if(Voltage_Count%2) ucLed[1] = 1;
+ 153   1          else ucLed[1] = 0;
+ 154   1        if(Error >= 3) ucLed[2] = 1;
+ 155   1          else ucLed[2] = 0;
+ 156   1        
+ 157   1      }
+ 158          
+ 159          /**
+ 160           * @brief   AD采集与DA输出任务(150ms周期)
+ 161           * @note    AD值转换为电压放大100倍：raw * 100 / 51 ≈ raw * 5 / 255 * 100
+ 162           *          DA输出3V：3 * 51 = 153 ≈ 3V对应的数字量
+ 163           */
+ 164          void AD_DA()
+ 165          {
+ 166   1        AD_3_Data_100x = Ad_Read(0x43) * 100 / 51;  // 通道3(变阻器)，电压*10
+ 167   1      }
+ 168          
+ 169          /* =================== 定时器初始化 ==================== */
+ 170          
+ 171          /**
+ 172           * @brief   定时器1初始化(1ms定时中断@12MHz)
+ 173           * @note    12T模式，16位自动重装
+ 174           *          初值：0xFC18 = 65536 - 1000 = 64536 (12MHz/12 = 1MHz, 1000us = 1ms)
+ 175           *          用途：系统节拍、数码管扫描、PWM、频率计数、串口超时
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 4   
+
+ 176           */
+ 177          void Timer1_Init(void)
+ 178          {
+ 179   1        AUXR &= 0xBF;             // 定时器1时钟 = 系统时钟/12(12T模式)
+ 180   1        TMOD &= 0x0F;             // 清除定时器1模式位，使用模式0(16位自动重装)
+ 181   1        TL1 = 0x18;               // 定时初值低字节
+ 182   1        TH1 = 0xFC;               // 定时初值高字节
+ 183   1        TF1 = 0;                  // 清除溢出标志
+ 184   1        TR1 = 1;                  // 启动定时器1
+ 185   1        ET1 = 1;                  // 使能定时器1中断
+ 186   1        EA = 1;                   // 使能总中断
+ 187   1      }
+ 188          
+ 189          
+ 190          /* ==================== 中断服务函数 ==================== */
+ 191          
+ 192          /**
+ 193           * @brief   定时器1中断服务函数(1ms周期)，中断号3
+ 194           * @note    承担5项职责：
+ 195           *          1. 系统节拍uwTick递增(驱动任务调度器)
+ 196           *          2. 数码管动态扫描(8位轮流显示)
+ 197           */
+ 198          void Timer1_Isr(void) interrupt 3
+ 199          {
+ 200   1        uwTick++;                  // 系统节拍+1
+ 201   1      
+ 202   1        /* 数码管动态扫描：每次中断显示下一位 */
+ 203   1        Seg_Pos = (++Seg_Pos) % 8;
+ 204   1        if(Seg_Buf[Seg_Pos] > 20)                              // >20说明带小数点标记(数字+',')
+ 205   1        {
+ 206   2          Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos] - ',', 1);      // 减去','恢复段码索引，第3参数1=显示�
+             -�数点
+ 207   2        }else
+ 208   1        {
+ 209   2          Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], 0);            // 正常显示，无小数点
+ 210   2        }
+ 211   1        Led_Disp(ucLed);
+ 212   1        if(Flag == 0)
+ 213   1        {
+ 214   2          Time5000++;
+ 215   2        }
+ 216   1        
+ 217   1        }
+ 218          
+ 219          
+ 220          
+ 221          
+ 222          /* ==================== 任务调度器 ==================== */
+ 223          
+ 224          /**
+ 225           * @brief   任务结构体定义
+ 226           * @details 每个任务包含：函数指针、执行周期(ms)、上次执行时间
+ 227           */
+ 228          typedef struct
+ 229          {
+ 230            void(*task_func)(void);          // 任务函数指针
+ 231            unsigned long int rate_ms;       // 执行周期(ms)
+ 232            unsigned long int last_ms;       // 上次执行时的uwTick值
+ 233          } task_t;
+ 234          
+ 235          /**
+ 236           * @brief   任务列表(静态配置)
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 5   
+
+ 237           * @note    各任务按功能和频率需求分配周期：
+ 238           *          高频任务：LED(1ms)、按键/串口(10ms)、数码管(20ms)
+ 239           *          低频任务：AD/DA(150ms)
+ 240           */
+ 241          idata task_t Scheduler_Task[] = {
+ 242            {Led_Proc,        1,   0},       // LED状态更新(1ms)
+ 243            {Key_Proc,        10,  0},       // 按键扫描(10ms)
+ 244            {Seg_Proc,        20,  0},       // 数码管显示更新(20ms)
+ 245            {AD_DA,           150, 0},       // AD采集与DA输出(150ms)
+ 246          };
+ 247          
+ 248          idata unsigned char task_num;        // 任务总数
+ 249          
+ 250          /**
+ 251           * @brief   调度器初始化
+ 252           * @note    自动计算任务数量，无需手动维护
+ 253           */
+ 254          void Scheduler_Init()
+ 255          {
+ 256   1        task_num = sizeof(Scheduler_Task) / sizeof(task_t);
+ 257   1      }
+ 258          
+ 259          /**
+ 260           * @brief   调度器运行(在主循环中持续调用)
+ 261           * @note    遍历所有任务，检查是否到达执行周期：
+ 262           *          当前时间 - 上次执行时间 >= 任务周期 -> 执行任务
+ 263           *          非抢占式：任务执行期间不会被其他任务打断(中断除外)
+ 264           */
+ 265          void Scheduler_Run()
+ 266          {
+ 267   1        unsigned char i;
+ 268   1        for(i=0; i<task_num; i++)
+ 269   1        {
+ 270   2          unsigned long int now_time = uwTick;
+ 271   2          if(now_time >= (Scheduler_Task[i].rate_ms + Scheduler_Task[i].last_ms))
+ 272   2          {
+ 273   3            Scheduler_Task[i].last_ms = now_time;  // 记录本次执行时间
+ 274   3            Scheduler_Task[i].task_func();          // 调用任务函数
+ 275   3          }
+ 276   2        }
+ 277   1      }
+ 278          
+ 279          /* ==================== 主函数 ==================== */
+ 280          
+ 281          /**
+ 282           * @brief   程序入口
+ 283           * @note    初始化顺序：
+ 284           *          1. System_Init()  - 关闭所有外设，防止误动作
+ 285           *          2. Scheduler_Init() - 初始化任务调度器
+ 286           *          4. EEPROM读写测试  - 验证EEPROM功能
+ 287           *          7. Timer1_Init()  - 系统节拍(最后初始化，启动中断)
+ 288           *          8. 主循环运行调度器
+ 289           */
+ 290          void main()
+ 291          {
+ 292   1        System_Init();                     // 系统初始化(关闭所有外设)
+ 293   1        Scheduler_Init();                  // 调度器初始化
+ 294   1        Timer1_Init();                      // 初始化系统节拍(1ms中断，最后启动)
+ 295   1        EEPROM_Read(&Voltage_E2PROM,0,1);
+ 296   1        Voltage_Set = Voltage_E2PROM *10;
+ 297   1        Ad_Read(0x43);
+ 298   1        while(1)
+C51 COMPILER V9.59.0.0   MAIN                                                              03/02/2026 20:01:18 PAGE 6   
+
+ 299   1        {
+ 300   2          Scheduler_Run();                // 持续运行任务调度器
+ 301   2        }
+ 302   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    893    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     32    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =     66    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
