@@ -1,0 +1,69 @@
+C51 COMPILER V9.59.0.0   LED                                                               03/02/2026 19:22:39 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE LED
+OBJECT MODULE PLACED IN .\Objects\LED.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE Driver\LED.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver) DEBUG OBJECTEXTEN
+                    -D PRINT(.\Listings\LED.lst) TABS(2) OBJECT(.\Objects\LED.obj)
+
+line level    source
+
+   1          /**
+   2           * @file    LED.c
+   3           * @brief   LED与外设(蜂鸣器/电机/继电器)驱动模块
+   4           * @details CT107D开发板外设控制：
+   5           *          - LED:    Y4C锁存器(P2高3位=100=0x80)，P0低电平点亮
+   6           *          采用"脏标记"优化：仅在状态变化时操作锁存器，减少总线操作
+   7           */
+   8          #include "LED.H"
+   9          
+  10          /* ==================== LED控制 ==================== */
+  11          
+  12          idata unsigned char temp_1 = 0x00;       /* LED当前状态(8位对应L1~L8) */
+  13          idata unsigned char temp_1_old = 0xff;   /* LED上次状态，初始化为不同值以触发首次刷新 *
+             -/
+  14          
+  15          /**
+  16           * @brief   LED显示函数
+  17           * @param   ucLed  8字节数组指针，每个元素0=灭，1=亮，对应L1~L8
+  18           * @note    仅当LED状态发生变化时才操作锁存器，提高效率
+  19           */
+  20          void Led_Disp(unsigned char *ucLed)
+  21          {
+  22   1        unsigned char temp;
+  23   1      
+  24   1        /* 将8个独立的0/1值合并为一个字节 */
+  25   1        temp_1 = 0x00;
+  26   1        temp_1 = (ucLed[0]<<0)|(ucLed[1]<<1)|(ucLed[2]<<2)|(ucLed[3]<<3)|
+  27   1        (ucLed[4]<<4)|(ucLed[5]<<5)|(ucLed[6]<<6)|(ucLed[7]<<7);
+  28   1      
+  29   1        /* 仅当LED状态发生变化时才刷新 */
+  30   1        if(temp_1 != temp_1_old)
+  31   1        {
+  32   2          P0 = ~temp_1;              // 取反：硬件低电平点亮LED
+  33   2      
+  34   2          temp = P2 & 0x1f;         // 保留P2低5位
+  35   2          temp = temp | 0x80;       // 选通Y4C(LED锁存器)
+  36   2          P2 = temp;
+  37   2          temp = P2 & 0x1f;         // 关闭选通
+  38   2          P2 = temp;
+  39   2      
+  40   2          temp_1_old = temp_1;      // 更新旧状态
+  41   2        }
+  42   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    127    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =      2    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.59.0.0   LED                                                               03/02/2026 19:22:39 PAGE 2   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

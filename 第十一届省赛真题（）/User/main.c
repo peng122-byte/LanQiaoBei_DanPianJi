@@ -3,32 +3,33 @@
  * @brief   蓝桥杯单片机竞赛综合模板 - 主程序
  * @details MCU: STC15F2K60S2, 晶振: 12MHz
  *          架构: 基于时间片的协作式任务调度器
- *          功能: 温度/AD-DA
+ *          功能: 时钟/温度/AD-DA/超声波/频率/PWM/串口
  */
 #include <STC15F2K60S2.H>
 #include "LED.h"
 #include "init.h"
 #include "Seg.h"
 #include "Key.h"
-#include "onewire.h"
 #include "iic.h"
-
-
 
 /* ==================== 全局变量定义 ==================== */
 
 idata unsigned long int uwTick;                          /* 系统节拍计数器(1ms递增，由Timer1中断驱动) */
 
 pdata unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};       /* LED状态数组(0=灭,1=亮)，对应L1~L8 */
-pdata unsigned char Seg_Buf[8] = {11,10,10,10,10,10,10,10}; /* 数码管显示缓冲区(10=灭,0~9=数字,加','=带小数点) */
+pdata unsigned char Seg_Buf[8] = {10,10,10,10,10,10,10,10}; /* 数码管显示缓冲区(10=灭,0~9=数字,加','=带小数点) */
 idata unsigned char Seg_Pos = 0;                         /* 当前扫描的数码管位(0~7循环) */
 idata unsigned char Key_Val, Key_Old, Key_Up, Key_Down;  /* 按键状态：当前值/上次值/松开事件/按下事件 */
-idata unsigned int Temperature_10x ,Temperature_1x;                       /* 温度值(放大10倍，如256=25.6°C) */
-idata unsigned char Seg_Show_Mod;                         /* 数码管显示模式(0~1) */
-idata unsigned char Temperature_Max = 30, Temperature_Min = 20;      /*温度上限 温度下限*/
-idata unsigned char Temperature_Max_Set = 30, Temperature_Min_Set = 20;      /*温度上限设置 温度下限设置*/
-idata unsigned char Temperature_Index;   //温度设置索引       
-idata unsigned char Error;
+idata unsigned int AD_3_Data_100x;        /* AD值(放大10倍，通道1光敏/通道3变阻器) */
+pdata unsigned char EEPROM_Data_W[8] = {1,2,3,4,5,6,7,8}; /* EEPROM写入测试数据 */
+pdata unsigned char EEPROM_Data_R[8] = {0,0,0,0,0,0,0,0}; /* EEPROM读取缓冲区 */
+idata unsigned char Seg_Show_Mod;                         /* 数码管显示模式(0~5) */
+idata unsigned char Voltage_E2PROM;
+idata unsigned int Voltage_Get, Voltage_Set = 300;/*电压设置参数*/
+idata unsigned char Voltage_Count;/*电压计数*/
+idata unsigned int Time5000;//5秒
+bit Flag;//下降沿标志位
+idata unsigned char Error;//错误处理 
 /* ==================== 任务处理函数 ==================== */
 
 /**
@@ -37,7 +38,8 @@ idata unsigned char Error;
  *          Key_Down = Key_Val & (Key_Val ^ Key_Old) —— 检测新按下
  *          Key_Up   = ~Key_Val & (Key_Val ^ Key_Old) —— 检测释放
  *
- *          
+ *          S4: 调节PWM占空比(0~9档循环)
+ *          S5: 切换数码管显示模式(0~5循环)
  */
 void Key_Proc()
 {
@@ -47,70 +49,45 @@ void Key_Proc()
 	Key_Old = Key_Val;                              // 保存当前值供下次比较
 	switch(Key_Down)
 	{
-		case 4:
-			if(++Seg_Show_Mod == 2)
+		case 12:
+			if(++Seg_Show_Mod == 2) 
 			{
-				if(Temperature_Max_Set >= Temperature_Min_Set)
-				{
-					Temperature_Max = Temperature_Max_Set;
-					Temperature_Min = Temperature_Min_Set;
-					Error = 0;
-				}					
-				else 
-				{
-					Temperature_Max_Set = Temperature_Max;
-					Temperature_Min_Set = Temperature_Min;
-					Error++;
-				}
-				Temperature_Index = 0;
-				Seg_Show_Mod = 0;
+				Voltage_E2PROM = Voltage_Set/10;
+				EEPROM_Write(&Voltage_E2PROM, 0, 1);
 			}
-				
+			if(Seg_Show_Mod == 3) Seg_Show_Mod = 0;
+			Error = 0;
 			
 		break;
-		case 5:
-			if(++Temperature_Index == 2) Temperature_Index = 0;
-		break;
-		case 6:
-			if(Seg_Show_Mod == 1)
+		case 13:
+			if(Seg_Show_Mod == 2) 
 			{
-				if(Temperature_Index == 0) 
-				{
-					if(++Temperature_Max_Set == 100)
-					{
-						Temperature_Max_Set = 99;
-					}
-				}
-				else if(Temperature_Index == 1)
-				{
-					if(++Temperature_Min_Set == 100)
-					{
-						Temperature_Min_Set = 99;
-					}
-				}
+				Error = 0;
+				Voltage_Count = 0;
 			}
+			else Error ++;
+			
 		break;
-		case 7:
-			if(Seg_Show_Mod == 1)
+		case 16:
+			if(Seg_Show_Mod == 1) 
 			{
-				if(Temperature_Index == 0) 
-				{
-					if(--Temperature_Max_Set == 255)
-					{
-						Temperature_Max_Set = 0;
-					}
-				}
-				else if(Temperature_Index == 1)
-				{
-					if(--Temperature_Min_Set == 255)
-					{
-						Temperature_Min_Set = 0;
-					}
-				}
+				Error = 0;
+				Voltage_Set += 50;
+				if(Voltage_Set > 500) Voltage_Set = 0;
 			}
+			else Error ++ ;
+			
+		break;
+		case 17:
+			if(Seg_Show_Mod == 1) 
+			{
+				Error = 0;
+				if(Voltage_Set == 0) Voltage_Set = 500;
+				Voltage_Set -= 50;
+			}
+			else Error ++ ;
 		break;
 	}
-	
 	
 }
 
@@ -119,61 +96,68 @@ void Seg_Proc()
 {
 	switch(Seg_Show_Mod)
 	{
-		case 0:  
-		Seg_Buf[0] = 11;
-		Seg_Buf[1] = 10;
-		Seg_Buf[2] = 10;
-		Seg_Buf[3] = 10;
-		Seg_Buf[4] = 10;
-		Seg_Buf[5] = 10;
-		Seg_Buf[6] = Temperature_10x /100 %10;
-		Seg_Buf[7] = Temperature_10x /10 %10;
+		case 0:
+			Seg_Buf[0] = 11;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = 10;
+			Seg_Buf[4] = 10;
+			Seg_Buf[5] = AD_3_Data_100x /100 %10 +',';
+			Seg_Buf[6] = AD_3_Data_100x /10 %10;
+			Seg_Buf[7] = AD_3_Data_100x /1 %10;
 		break;
-		case 1: 
-		Seg_Buf[0] = 12;
-		Seg_Buf[1] = 10;
-		Seg_Buf[2] = 10;
-		Seg_Buf[3] = Temperature_Max_Set /10 %10;
-		Seg_Buf[4] = Temperature_Max_Set %10;
-		Seg_Buf[5] = 10;
-		Seg_Buf[6] = Temperature_Min_Set /10 %10;
-		Seg_Buf[7] = Temperature_Min_Set %10;
+		case 1:
+			Seg_Buf[0] = 12;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = 10;
+			Seg_Buf[4] = 10;
+			Seg_Buf[5] = Voltage_Set /100 %10 +',';
+			Seg_Buf[6] = Voltage_Set /10 %10;
+			Seg_Buf[7] = Voltage_Set /1 %10;
 		break;
-
+		case 2:
+			Seg_Buf[0] = 13;
+			Seg_Buf[1] = 10;
+			Seg_Buf[2] = 10;
+			Seg_Buf[3] = 10;
+			Seg_Buf[4] = 10;
+			Seg_Buf[5] = 10;
+			Seg_Buf[6] = Voltage_Count /10 %10;
+			Seg_Buf[7] = Voltage_Count /1 %10;
+		break;
 	}
 }
 
 
 void Led_Proc()
 {
-	if(Temperature_1x > Temperature_Max) ucLed[0] = 1;
-	else ucLed[0] = 0;
-	if((Temperature_1x <= Temperature_Max) && (Temperature_1x >= Temperature_Min)) ucLed[1] = 1;
-	else ucLed[1] = 0;
-	if(Temperature_1x < Temperature_Min) ucLed[2] = 1;
-	else ucLed[2] = 0;
-	if(Error) ucLed[3] = 1;
-	else ucLed[3] = 0;
+	Voltage_Get = AD_3_Data_100x;
+	if(Voltage_Get >= Voltage_Set) Flag = 1;
+	if((Flag) && (Voltage_Get < Voltage_Set))
+	{
+		Flag = 0;
+		Voltage_Count ++;
+	if(Time5000 == 5000) ucLed[0] = 1;
+		else ucLed[0] = 0;
+	if(Voltage_Count%2) ucLed[1] = 1;
+		else ucLed[1] = 0;
+	if(Error >= 3) ucLed[2] = 1;
+		else ucLed[2] = 0;
+	}
 }
 
-
-void Get_Temperature()
-{
-	Temperature_10x = rd_temperature() * 10;
-	Temperature_1x = Temperature_10x /10;
-}
-
-
+/**
+ * @brief   AD采集与DA输出任务(150ms周期)
+ * @note    AD值转换为电压放大100倍：raw * 100 / 51 ≈ raw * 5 / 255 * 100
+ *          DA输出3V：3 * 51 = 153 ≈ 3V对应的数字量
+ */
 void AD_DA()
 {
-	if(Temperature_1x > Temperature_Max) Da_Write(4 * 51);
-	if((Temperature_1x <= Temperature_Max) && (Temperature_1x >= Temperature_Min)) Da_Write(3 * 51);
-	if(Temperature_1x < Temperature_Min) Da_Write(2 * 51);
-                        
+	AD_3_Data_100x = Ad_Read(0x43) * 100 / 51;  // 通道3(变阻器)，电压*10
 }
 
-
-/* ==================== 定时器初始化 ==================== */
+/* =================== 定时器初始化 ==================== */
 
 /**
  * @brief   定时器1初始化(1ms定时中断@12MHz)
@@ -194,7 +178,6 @@ void Timer1_Init(void)
 }
 
 
-
 /* ==================== 中断服务函数 ==================== */
 
 /**
@@ -202,9 +185,6 @@ void Timer1_Init(void)
  * @note    承担5项职责：
  *          1. 系统节拍uwTick递增(驱动任务调度器)
  *          2. 数码管动态扫描(8位轮流显示)
- *          3. 频率计数(每1000次=1秒读取Timer0计数值)
- *          4. LED的PWM调光(10级占空比)
- *          5. 串口接收超时计数
  */
 void Timer1_Isr(void) interrupt 3
 {
@@ -220,8 +200,13 @@ void Timer1_Isr(void) interrupt 3
 		Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], 0);            // 正常显示，无小数点
 	}
 	Led_Disp(ucLed);
+	if(Flag == 0)
+	{
+		Time5000++;
+	}
+	
+	}
 
-}
 
 
 
@@ -242,13 +227,12 @@ typedef struct
  * @brief   任务列表(静态配置)
  * @note    各任务按功能和频率需求分配周期：
  *          高频任务：LED(1ms)、按键/串口(10ms)、数码管(20ms)
- *          低频任务：AD/DA(150ms)、温度(300ms)
+ *          低频任务：AD/DA(150ms)
  */
 idata task_t Scheduler_Task[] = {
 	{Led_Proc,        1,   0},       // LED状态更新(1ms)
 	{Key_Proc,        10,  0},       // 按键扫描(10ms)
 	{Seg_Proc,        20,  0},       // 数码管显示更新(20ms)
-	{Get_Temperature, 1000, 0},      // 温度采集(1000ms，DS18B20 12位转换需750ms)
 	{AD_DA,           150, 0},       // AD采集与DA输出(150ms)
 };
 
@@ -290,6 +274,7 @@ void Scheduler_Run()
  * @note    初始化顺序：
  *          1. System_Init()  - 关闭所有外设，防止误动作
  *          2. Scheduler_Init() - 初始化任务调度器
+ *          4. EEPROM读写测试  - 验证EEPROM功能
  *          7. Timer1_Init()  - 系统节拍(最后初始化，启动中断)
  *          8. 主循环运行调度器
  */
@@ -297,8 +282,10 @@ void main()
 {
 	System_Init();                     // 系统初始化(关闭所有外设)
 	Scheduler_Init();                  // 调度器初始化
-	
 	Timer1_Init();                      // 初始化系统节拍(1ms中断，最后启动)
+	EEPROM_Read(&Voltage_E2PROM,0,1);
+	Voltage_Set = Voltage_E2PROM *10;
+	Ad_Read(0x43);
 	while(1)
 	{
 		Scheduler_Run();                // 持续运行任务调度器

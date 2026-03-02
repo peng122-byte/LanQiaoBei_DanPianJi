@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 11:41:53 PAGE 1   
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 13:16:27 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE ONEWIRE
@@ -62,7 +62,7 @@ line level    source
   52           *          在15us内采样DQ电平
   53           */
   54          unsigned char Read_DS18B20(void)
-C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 11:41:53 PAGE 2   
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 13:16:27 PAGE 2   
 
   55          {
   56   1        unsigned char i;
@@ -104,48 +104,56 @@ line level    source
   92   1        return initflag;
   93   1      }
   94          
-  95          /**
-  96           * @brief   读取DS18B20温度值
-  97           * @return  温度值(float类型，单位°C，精度0.0625°C)
-  98           * @note    完整流程：
-  99           *          1. 复位 -> 跳过ROM(0xCC) -> 启动转换(0x44)
- 100           *          2. 等待转换完成(约200个延时单位)
- 101           *          3. 复位 -> 跳过ROM(0xCC) -> 读取暂存器(0xBE)
- 102           *          4. 先读低字节，再读高字节
- 103           *          5. 合并后乘以0.0625得到实际温度
- 104           */
- 105          float rd_temperature()
- 106          {
- 107   1        unsigned char high, low;
- 108   1      
- 109   1        /* 第一步：启动温度转换 */
- 110   1        init_ds18b20();
- 111   1        Write_DS18B20(0xcc);     // 跳过ROM检查(单设备总线)
- 112   1        Write_DS18B20(0x44);     // 启动温度转换
- 113   1      
- 114   1        Delay_OneWire(200);      // 等待转换完成
- 115   1      
- 116   1        /* 第二步：读取温度数据 */
-C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 11:41:53 PAGE 3   
+  95          
+  96          /**
+  97           * @brief   读取DS18B20温度值(分步式，避免跳变)
+  98           * @return  温度值(float类型，单位°C)
+  99           * @note    每次调用交替执行：
+ 100           *          第1次：发起转换命令（不读取）
+ 101           *          第2次：读取上次转换结果 + 发起新转换
+ 102           *          调用间隔需 ≥300ms，确保转换完成
+ 103           */
+ 104          float rd_temperature()
+ 105          {
+ 106   1        unsigned char high, low;
+ 107   1        static unsigned char flag = 0;  // 0=首次仅转换，1=读取+转换
+ 108   1        float temp;
+ 109   1      
+ 110   1        if(flag == 0)
+ 111   1        {
+ 112   2          /* 首次调用：仅发起转换，返回0 */
+ 113   2          init_ds18b20();
+ 114   2          Write_DS18B20(0xcc);
+ 115   2          Write_DS18B20(0x44);
+ 116   2          flag = 1;
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/02/2026 13:16:27 PAGE 3   
 
- 117   1        init_ds18b20();
- 118   1        Write_DS18B20(0xcc);     // 跳过ROM检查
- 119   1        Write_DS18B20(0xbe);     // 读取暂存器命令
- 120   1      
- 121   1        low = Read_DS18B20();    // 读温度低字节
- 122   1        high = Read_DS18B20();   // 读温度高字节
- 123   1      
- 124   1        /* 合并高低字节，乘以分辨率0.0625°C */
- 125   1        return (float)(high << 8 | low) * 0.0625;
- 126   1      }
+ 117   2          return 0;
+ 118   2        }
+ 119   1      
+ 120   1        /* 读取上一次转换的结果 */
+ 121   1        init_ds18b20();
+ 122   1        Write_DS18B20(0xcc);
+ 123   1        Write_DS18B20(0xbe);
+ 124   1        low = Read_DS18B20();
+ 125   1        high = Read_DS18B20();
+ 126   1      
+ 127   1        /* 立即发起下一次转换 */
+ 128   1        init_ds18b20();
+ 129   1        Write_DS18B20(0xcc);
+ 130   1        Write_DS18B20(0x44);
+ 131   1      
+ 132   1        temp = (float)(high << 8 | low) * 0.0625;
+ 133   1        return temp;
+ 134   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    202    ----
+   CODE SIZE        =    217    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----    ----
+   DATA SIZE        =      1       1
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----       1
 END OF MODULE INFORMATION.

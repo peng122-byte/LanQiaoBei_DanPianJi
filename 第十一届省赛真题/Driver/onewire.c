@@ -92,35 +92,43 @@ bit init_ds18b20(void)
 	return initflag;
 }
 
+
 /**
- * @brief   读取DS18B20温度值
- * @return  温度值(float类型，单位°C，精度0.0625°C)
- * @note    完整流程：
- *          1. 复位 -> 跳过ROM(0xCC) -> 启动转换(0x44)
- *          2. 等待转换完成(约200个延时单位)
- *          3. 复位 -> 跳过ROM(0xCC) -> 读取暂存器(0xBE)
- *          4. 先读低字节，再读高字节
- *          5. 合并后乘以0.0625得到实际温度
+ * @brief   读取DS18B20温度值(分步式，避免跳变)
+ * @return  温度值(float类型，单位°C)
+ * @note    每次调用交替执行：
+ *          第1次：发起转换命令（不读取）
+ *          第2次：读取上次转换结果 + 发起新转换
+ *          调用间隔需 ≥300ms，确保转换完成
  */
 float rd_temperature()
 {
 	unsigned char high, low;
+	static unsigned char flag = 0;  // 0=首次仅转换，1=读取+转换
+	float temp;
 
-	/* 第一步：启动温度转换 */
+	if(flag == 0)
+	{
+		/* 首次调用：仅发起转换，返回0 */
+		init_ds18b20();
+		Write_DS18B20(0xcc);
+		Write_DS18B20(0x44);
+		flag = 1;
+		return 0;
+	}
+
+	/* 读取上一次转换的结果 */
 	init_ds18b20();
-	Write_DS18B20(0xcc);     // 跳过ROM检查(单设备总线)
-	Write_DS18B20(0x44);     // 启动温度转换
+	Write_DS18B20(0xcc);
+	Write_DS18B20(0xbe);
+	low = Read_DS18B20();
+	high = Read_DS18B20();
 
-	Delay_OneWire(200);      // 等待转换完成
-
-	/* 第二步：读取温度数据 */
+	/* 立即发起下一次转换 */
 	init_ds18b20();
-	Write_DS18B20(0xcc);     // 跳过ROM检查
-	Write_DS18B20(0xbe);     // 读取暂存器命令
+	Write_DS18B20(0xcc);
+	Write_DS18B20(0x44);
 
-	low = Read_DS18B20();    // 读温度低字节
-	high = Read_DS18B20();   // 读温度高字节
-
-	/* 合并高低字节，乘以分辨率0.0625°C */
-	return (float)(high << 8 | low) * 0.0625;
+	temp = (float)(high << 8 | low) * 0.0625;
+	return temp;
 }
