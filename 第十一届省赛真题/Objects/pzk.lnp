@@ -1,0 +1,10 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\iic.obj",
+".\Objects\Init.obj",
+".\Objects\Key.obj",
+".\Objects\LED.obj",
+".\Objects\onewire.obj",
+".\Objects\Seg.obj" 
+TO ".\Objects\pzk" 
+PRINT(".\Listings\pzk.m51") RAMSIZE(256) 

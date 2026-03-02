@@ -1,0 +1,154 @@
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/01/2026 21:17:24 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE ONEWIRE
+OBJECT MODULE PLACED IN .\Objects\onewire.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE Driver\onewire.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver) DEBUG OBJECTE
+                    -XTEND PRINT(.\Listings\onewire.lst) TABS(2) OBJECT(.\Objects\onewire.obj)
+
+line level    source
+
+   1          /**
+   2           * @file    onewire.c
+   3           * @brief   单总线(1-Wire)驱动模块 - DS18B20温度传感器
+   4           * @details DS18B20是数字温度传感器，通过单总线协议通信
+   5           *          测量范围：-55~+125°C，精度：0.0625°C(12位分辨率)
+   6           *          通信流程：复位 -> ROM命令 -> 功能命令
+   7           *
+   8           *          本驱动代码基于蓝桥杯官方提供的代码片段修改
+   9           */
+  10          #include "onewire.h"
+  11          
+  12          sbit DQ = P1^4;    // 单总线数据引脚
+  13          
+  14          /**
+  15           * @brief   单总线延时函数
+  16           * @param   t  延时参数，每个单位约1us(12MHz晶振下)
+  17           * @note    延时精度直接影响通信时序，需根据晶振频率调整内部循环
+  18           */
+  19          void Delay_OneWire(unsigned int t)
+  20          {
+  21   1        unsigned char i;
+  22   1        while(t--){
+  23   2          for(i=0; i<12; i++);  // 12MHz下约1us
+  24   2        }
+  25   1      }
+  26          
+  27          /**
+  28           * @brief   向DS18B20写入一个字节
+  29           * @param   dat  要写入的字节数据
+  30           * @note    写时序(LSB优先)：
+  31           *          写0：拉低DQ >60us
+  32           *          写1：拉低DQ <15us，然后释放
+  33           */
+  34          void Write_DS18B20(unsigned char dat)
+  35          {
+  36   1        unsigned char i;
+  37   1        for(i=0; i<8; i++)
+  38   1        {
+  39   2          DQ = 0;              // 拉低总线，启动写时隙
+  40   2          DQ = dat & 0x01;     // 发送最低位
+  41   2          Delay_OneWire(5);    // 保持足够时间让DS18B20采样
+  42   2          DQ = 1;              // 释放总线
+  43   2          dat >>= 1;           // 右移准备下一位
+  44   2        }
+  45   1        Delay_OneWire(5);
+  46   1      }
+  47          
+  48          /**
+  49           * @brief   从DS18B20读取一个字节
+  50           * @return  读取到的字节数据
+  51           * @note    读时序(LSB优先)：主机拉低DQ启动读时隙，然后释放，
+  52           *          在15us内采样DQ电平
+  53           */
+  54          unsigned char Read_DS18B20(void)
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/01/2026 21:17:24 PAGE 2   
+
+  55          {
+  56   1        unsigned char i;
+  57   1        unsigned char dat;
+  58   1      
+  59   1        for(i=0; i<8; i++)
+  60   1        {
+  61   2          DQ = 0;              // 拉低总线，启动读时隙
+  62   2          dat >>= 1;           // 右移腾出最高位
+  63   2          DQ = 1;              // 释放总线，等待DS18B20输出数据
+  64   2          if(DQ)
+  65   2          {
+  66   3            dat |= 0x80;     // DQ为高则最高位置1
+  67   3          }
+  68   2          Delay_OneWire(5);    // 等待时隙结束
+  69   2        }
+  70   1        return dat;
+  71   1      }
+  72          
+  73          /**
+  74           * @brief   DS18B20复位/存在检测
+  75           * @return  0=存在(正常), 1=不存在(异常)
+  76           * @note    复位时序：主机拉低DQ 480us以上 -> 释放 -> 等待60~240us ->
+  77           *          检测DS18B20拉低DQ的应答脉冲
+  78           */
+  79          bit init_ds18b20(void)
+  80          {
+  81   1        bit initflag = 0;
+  82   1      
+  83   1        DQ = 1;
+  84   1        Delay_OneWire(12);
+  85   1        DQ = 0;                  // 主机拉低总线 >480us
+  86   1        Delay_OneWire(80);
+  87   1        DQ = 1;                  // 释放总线
+  88   1        Delay_OneWire(10);       // 等待DS18B20应答
+  89   1        initflag = DQ;           // 0=DS18B20存在(它会拉低总线)
+  90   1        Delay_OneWire(5);
+  91   1      
+  92   1        return initflag;
+  93   1      }
+  94          
+  95          /**
+  96           * @brief   读取DS18B20温度值
+  97           * @return  温度值(float类型，单位°C，精度0.0625°C)
+  98           * @note    完整流程：
+  99           *          1. 复位 -> 跳过ROM(0xCC) -> 启动转换(0x44)
+ 100           *          2. 等待转换完成(约200个延时单位)
+ 101           *          3. 复位 -> 跳过ROM(0xCC) -> 读取暂存器(0xBE)
+ 102           *          4. 先读低字节，再读高字节
+ 103           *          5. 合并后乘以0.0625得到实际温度
+ 104           */
+ 105          float rd_temperature()
+ 106          {
+ 107   1        unsigned char high, low;
+ 108   1      
+ 109   1        /* 第一步：启动温度转换 */
+ 110   1        init_ds18b20();
+ 111   1        Write_DS18B20(0xcc);     // 跳过ROM检查(单设备总线)
+ 112   1        Write_DS18B20(0x44);     // 启动温度转换
+ 113   1      
+ 114   1        Delay_OneWire(200);      // 等待转换完成
+ 115   1      
+ 116   1        /* 第二步：读取温度数据 */
+C51 COMPILER V9.59.0.0   ONEWIRE                                                           03/01/2026 21:17:24 PAGE 3   
+
+ 117   1        init_ds18b20();
+ 118   1        Write_DS18B20(0xcc);     // 跳过ROM检查
+ 119   1        Write_DS18B20(0xbe);     // 读取暂存器命令
+ 120   1      
+ 121   1        low = Read_DS18B20();    // 读温度低字节
+ 122   1        high = Read_DS18B20();   // 读温度高字节
+ 123   1      
+ 124   1        /* 合并高低字节，乘以分辨率0.0625°C */
+ 125   1        return (float)(high << 8 | low) * 0.0625;
+ 126   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    202    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

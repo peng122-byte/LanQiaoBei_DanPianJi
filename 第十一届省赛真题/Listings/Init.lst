@@ -1,0 +1,60 @@
+C51 COMPILER V9.59.0.0   INIT                                                              03/01/2026 21:17:23 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE INIT
+OBJECT MODULE PLACED IN .\Objects\Init.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE Driver\Init.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver) DEBUG OBJECTEXTE
+                    -ND PRINT(.\Listings\Init.lst) TABS(2) OBJECT(.\Objects\Init.obj)
+
+line level    source
+
+   1          /**
+   2           * @file    Init.c
+   3           * @brief   系统初始化模块
+   4           * @details 关闭所有外设输出(LED、蜂鸣器、继电器、电机)，防止上电后外设误动�
+             -�
+   5           *          CT107D开发板通过74HC138+74HC573锁存器控制外设，
+   6           *          P2高3位选择锁存器，P0为数据总线
+   7           */
+   8          #include "init.h"
+   9          
+  10          /**
+  11           * @brief  系统上电初始化
+  12           * @note   必须在main函数最开始调用，确保所有外设处于关闭状态
+  13           *         锁存器选通原理：P2高3位设置目标值 -> 锁存 -> P2高3位清零(关闭选通)
+  14           */
+  15          void System_Init()
+  16          {
+  17   1        unsigned char temp;
+  18   1      
+  19   1        /* 关闭LED: Y4C(P2高3位=100=0x80)锁存器，P0=0xFF全灭(低电平点亮) */
+  20   1        P0 = 0xff;
+  21   1      
+  22   1        temp = P2 & 0x1f;       // 保留P2低5位不变
+  23   1        temp = temp | 0x80;     // P2高3位=100，选通Y4C(LED锁存器)
+  24   1        P2 = temp;
+  25   1        temp = P2 & 0x1f;       // 清除P2高3位，关闭选通
+  26   1        P2 = temp;
+  27   1      
+  28   1        /* 关闭蜂鸣器、继电器、电机: Y5C(P2高3位=101=0xA0)锁存器，P0=0x00全关 */
+  29   1        P0 = 0x00;
+  30   1        temp = P2 & 0x1f;
+  31   1        temp = temp | 0xa0;     // P2高3位=101，选通Y5C(蜂鸣器/继电器/电机锁存器)
+  32   1        P2 = temp;
+  33   1        temp = P2 & 0x1f;
+  34   1        P2 = temp;
+  35   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     39    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

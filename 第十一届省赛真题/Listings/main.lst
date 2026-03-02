@@ -1,0 +1,312 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 21:17:23 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keilc51\C51\BIN\C51.EXE User\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver) DEBUG OBJECTEXTEND
+                    - PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          /**
+   2           * @file    main.c
+   3           * @brief   蓝桥杯单片机竞赛综合模板 - 主程序
+   4           * @details MCU: STC15F2K60S2, 晶振: 12MHz
+   5           *          架构: 基于时间片的协作式任务调度器
+   6           *          功能: 温度/AD-DA
+   7           */
+   8          #include <STC15F2K60S2.H>
+   9          #include "LED.h"
+  10          #include "init.h"
+  11          #include "Seg.h"
+  12          #include "Key.h"
+  13          #include "onewire.h"
+  14          #include "iic.h"
+  15          
+  16          
+  17          
+  18          /* ==================== 全局变量定义 ==================== */
+  19          
+  20          idata unsigned long int uwTick;                          /* 系统节拍计数器(1ms递增，由Timer1中
+             -断驱动) */
+  21          
+  22          pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};       /* LED状态数组(0=灭,1=亮)，对应L1~L8 */
+  23          pdata unsigned char Seg_Buf[8] = {1,2,3,4,5,6,7,8}; /* 数码管显示缓冲区(10=灭,0~9=数字,加','=�
+             -��小数点) */
+  24          idata unsigned char Seg_Pos = 0;                         /* 当前扫描的数码管位(0~7循环) */
+  25          idata unsigned char Key_Val, Key_Old, Key_Up, Key_Down;  /* 按键状态：当前值/上次值/松开事�
+             -�/按下事件 */
+  26          idata unsigned int Temperature_10x;                       /* 温度值(放大10倍，如256=25.6°C) */
+  27          idata unsigned char Seg_Show_Mod;                         /* 数码管显示模式(0~1) */
+  28          idata unsigned char Temperature_Max = 30, Temperature_Min = 20;      /*温度上限 温度下限*/
+  29          idata unsigned char Temperature_Index;                      //温度设置索引       
+  30          /* ==================== 任务处理函数 ==================== */
+  31          
+  32          /**
+  33           * @brief   按键处理任务(10ms周期)
+  34           * @note    按键检测采用"按下沿捕获"：
+  35           *          Key_Down = Key_Val & (Key_Val ^ Key_Old) —— 检测新按下
+  36           *          Key_Up   = ~Key_Val & (Key_Val ^ Key_Old) —— 检测释放
+  37           *
+  38           *          
+  39           */
+  40          void Key_Proc()
+  41          {
+  42   1        Key_Val = Key_Read();                          // 读取当前按键值
+  43   1        Key_Down = Key_Val & (Key_Val ^ Key_Old);      // 检测按下沿(由无到有)
+  44   1        Key_Up = ~Key_Val & (Key_Val ^ Key_Old);       // 检测释放沿(由有到无)
+  45   1        Key_Old = Key_Val;                              // 保存当前值供下次比较
+  46   1        switch(Key_Down)
+  47   1        {
+  48   2          case 4:
+  49   2            if(++Seg_Show_Mod == 2) Seg_Show_Mod = 0;
+  50   2          break;
+  51   2          case 5:
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 21:17:23 PAGE 2   
+
+  52   2            if(++Temperature_Index == 2) Temperature_Index = 0;
+  53   2          break;
+  54   2          case 6:
+  55   2            if(Seg_Show_Mod == 1)
+  56   2            {
+  57   3              if(Temperature_Index == 0) 
+  58   3              {
+  59   4                if(++Temperature_Max == 100)
+  60   4                {
+  61   5                  Temperature_Max = 99;
+  62   5                }
+  63   4              }
+  64   3              else if(Temperature_Index == 1)
+  65   3              {
+  66   4                if(++Temperature_Min == 100)
+  67   4                {
+  68   5                  Temperature_Min = 99;
+  69   5                }
+  70   4              }
+  71   3            }
+  72   2          break;
+  73   2          case 7:
+  74   2            if(Seg_Show_Mod == 1)
+  75   2            {
+  76   3              if(Temperature_Index == 0) 
+  77   3              {
+  78   4                if(--Temperature_Max == 255)
+  79   4                {
+  80   5                  Temperature_Max = 0;
+  81   5                }
+  82   4              }
+  83   3              else if(Temperature_Index == 1)
+  84   3              {
+  85   4                if(--Temperature_Min == 255)
+  86   4                {
+  87   5                  Temperature_Min = 0;
+  88   5                }
+  89   4              }
+  90   3            }
+  91   2          break;
+  92   2        }
+  93   1        
+  94   1        
+  95   1      }
+  96          
+  97          
+  98          void Seg_Proc()
+  99          {
+ 100   1        switch(Seg_Show_Mod)
+ 101   1        {
+ 102   2          case 0:  
+ 103   2          Seg_Buf[0] = 11;
+ 104   2          Seg_Buf[1] = 10;
+ 105   2          Seg_Buf[2] = 10;
+ 106   2          Seg_Buf[3] = 10;
+ 107   2          Seg_Buf[4] = 10;
+ 108   2          Seg_Buf[5] = 10;
+ 109   2          Seg_Buf[6] = Temperature_10x /100 %10;
+ 110   2          Seg_Buf[7] = Temperature_10x /10 %10;
+ 111   2          break;
+ 112   2          case 1: 
+ 113   2          Seg_Buf[0] = 12;
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 21:17:23 PAGE 3   
+
+ 114   2          Seg_Buf[1] = 10;
+ 115   2          Seg_Buf[2] = 10;
+ 116   2          Seg_Buf[3] = Temperature_Max /10 %10;
+ 117   2          Seg_Buf[4] = Temperature_Max %10;
+ 118   2          Seg_Buf[5] = 10;
+ 119   2          Seg_Buf[6] = Temperature_Min /10 %10;
+ 120   2          Seg_Buf[7] = Temperature_Min %10;
+ 121   2          break;
+ 122   2      
+ 123   2        }
+ 124   1      }
+ 125          
+ 126          
+ 127          void Led_Proc()
+ 128          {
+ 129   1        
+ 130   1        
+ 131   1      }
+ 132          
+ 133          
+ 134          void Get_Temperature()
+ 135          {
+ 136   1        Temperature_10x = rd_temperature() * 10;
+ 137   1      }
+ 138          
+ 139          
+ 140          void AD_DA()
+ 141          {
+ 142   1        
+ 143   1        Da_Write(3 * 51);                           // DA输出约3V
+ 144   1      }
+ 145          
+ 146          
+ 147          /* ==================== 定时器初始化 ==================== */
+ 148          
+ 149          /**
+ 150           * @brief   定时器1初始化(1ms定时中断@12MHz)
+ 151           * @note    12T模式，16位自动重装
+ 152           *          初值：0xFC18 = 65536 - 1000 = 64536 (12MHz/12 = 1MHz, 1000us = 1ms)
+ 153           *          用途：系统节拍、数码管扫描、PWM、频率计数、串口超时
+ 154           */
+ 155          void Timer1_Init(void)
+ 156          {
+ 157   1        AUXR &= 0xBF;             // 定时器1时钟 = 系统时钟/12(12T模式)
+ 158   1        TMOD &= 0x0F;             // 清除定时器1模式位，使用模式0(16位自动重装)
+ 159   1        TL1 = 0x18;               // 定时初值低字节
+ 160   1        TH1 = 0xFC;               // 定时初值高字节
+ 161   1        TF1 = 0;                  // 清除溢出标志
+ 162   1        TR1 = 1;                  // 启动定时器1
+ 163   1        ET1 = 1;                  // 使能定时器1中断
+ 164   1        EA = 1;                   // 使能总中断
+ 165   1      }
+ 166          
+ 167          
+ 168          
+ 169          /* ==================== 中断服务函数 ==================== */
+ 170          
+ 171          /**
+ 172           * @brief   定时器1中断服务函数(1ms周期)，中断号3
+ 173           * @note    承担5项职责：
+ 174           *          1. 系统节拍uwTick递增(驱动任务调度器)
+ 175           *          2. 数码管动态扫描(8位轮流显示)
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 21:17:23 PAGE 4   
+
+ 176           *          3. 频率计数(每1000次=1秒读取Timer0计数值)
+ 177           *          4. LED的PWM调光(10级占空比)
+ 178           *          5. 串口接收超时计数
+ 179           */
+ 180          void Timer1_Isr(void) interrupt 3
+ 181          {
+ 182   1        uwTick++;                  // 系统节拍+1
+ 183   1      
+ 184   1        /* 数码管动态扫描：每次中断显示下一位 */
+ 185   1        Seg_Pos = (++Seg_Pos) % 8;
+ 186   1        if(Seg_Buf[Seg_Pos] > 20)                              // >20说明带小数点标记(数字+',')
+ 187   1        {
+ 188   2          Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos] - ',', 1);      // 减去','恢复段码索引，第3参数1=显示�
+             -�数点
+ 189   2        }else
+ 190   1        {
+ 191   2          Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], 0);            // 正常显示，无小数点
+ 192   2        }
+ 193   1      
+ 194   1      
+ 195   1      }
+ 196          
+ 197          
+ 198          
+ 199          /* ==================== 任务调度器 ==================== */
+ 200          
+ 201          /**
+ 202           * @brief   任务结构体定义
+ 203           * @details 每个任务包含：函数指针、执行周期(ms)、上次执行时间
+ 204           */
+ 205          typedef struct
+ 206          {
+ 207            void(*task_func)(void);          // 任务函数指针
+ 208            unsigned long int rate_ms;       // 执行周期(ms)
+ 209            unsigned long int last_ms;       // 上次执行时的uwTick值
+ 210          } task_t;
+ 211          
+ 212          /**
+ 213           * @brief   任务列表(静态配置)
+ 214           * @note    各任务按功能和频率需求分配周期：
+ 215           *          高频任务：LED(1ms)、按键/串口(10ms)、数码管(20ms)
+ 216           *          低频任务：AD/DA(150ms)、温度(300ms)
+ 217           */
+ 218          idata task_t Scheduler_Task[] = {
+ 219            {Led_Proc,        1,   0},       // LED状态更新(1ms)
+ 220            {Key_Proc,        10,  0},       // 按键扫描(10ms)
+ 221            {Seg_Proc,        20,  0},       // 数码管显示更新(20ms)
+ 222            {Get_Temperature, 300, 0},       // 温度采集(300ms)
+ 223            {AD_DA,           150, 0},       // AD采集与DA输出(150ms)
+ 224          };
+ 225          
+ 226          idata unsigned char task_num;        // 任务总数
+ 227          
+ 228          /**
+ 229           * @brief   调度器初始化
+ 230           * @note    自动计算任务数量，无需手动维护
+ 231           */
+ 232          void Scheduler_Init()
+ 233          {
+ 234   1        task_num = sizeof(Scheduler_Task) / sizeof(task_t);
+ 235   1      }
+ 236          
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 21:17:23 PAGE 5   
+
+ 237          /**
+ 238           * @brief   调度器运行(在主循环中持续调用)
+ 239           * @note    遍历所有任务，检查是否到达执行周期：
+ 240           *          当前时间 - 上次执行时间 >= 任务周期 -> 执行任务
+ 241           *          非抢占式：任务执行期间不会被其他任务打断(中断除外)
+ 242           */
+ 243          void Scheduler_Run()
+ 244          {
+ 245   1        unsigned char i;
+ 246   1        for(i=0; i<task_num; i++)
+ 247   1        {
+ 248   2          unsigned long int now_time = uwTick;
+ 249   2          if(now_time >= (Scheduler_Task[i].rate_ms + Scheduler_Task[i].last_ms))
+ 250   2          {
+ 251   3            Scheduler_Task[i].last_ms = now_time;  // 记录本次执行时间
+ 252   3            Scheduler_Task[i].task_func();          // 调用任务函数
+ 253   3          }
+ 254   2        }
+ 255   1      }
+ 256          
+ 257          /* ==================== 主函数 ==================== */
+ 258          
+ 259          /**
+ 260           * @brief   程序入口
+ 261           * @note    初始化顺序：
+ 262           *          1. System_Init()  - 关闭所有外设，防止误动作
+ 263           *          2. Scheduler_Init() - 初始化任务调度器
+ 264           *          7. Timer1_Init()  - 系统节拍(最后初始化，启动中断)
+ 265           *          8. 主循环运行调度器
+ 266           */
+ 267          void main()
+ 268          {
+ 269   1        System_Init();                     // 系统初始化(关闭所有外设)
+ 270   1        Scheduler_Init();                  // 调度器初始化
+ 271   1        Timer1_Init();                      // 初始化系统节拍(1ms中断，最后启动)
+ 272   1        while(1)
+ 273   1        {
+ 274   2          Scheduler_Run();                // 持续运行任务调度器
+ 275   2        }
+ 276   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    601    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     16    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =     71    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

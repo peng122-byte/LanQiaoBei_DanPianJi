@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 1   
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
@@ -42,16 +42,16 @@ line level    source
   32          idata unsigned int Freq;
   33          idata unsigned int Time_1s;
   34          
-  35          idata unsigned char pwm_period;//ÀÛ¼Ó¶Ô±È
-  36          idata unsigned char pwm_compare = 6;//±È½ÏÖµ£¬Ò²¾ÍÊÇÁÁ¶È
+  35          idata unsigned char pwm_period;//ï¿½Û¼Ó¶Ô±ï¿½
+  36          idata unsigned char pwm_compare = 6;//ï¿½È½ï¿½Öµï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   37          
   38          idata unsigned char Uart_Rx_Index;
   39          pdata unsigned char Uart_Rx_Buf[10] = {0,0,0,0,0,0,0,0,0,0};
   40          idata unsigned char Uart_Rx_Flag;
-  41          idata unsigned char Uart_Rx_Tick;//³¬Ê±½âÎö¼ÆÊ±Æ÷
+  41          idata unsigned char Uart_Rx_Tick;//ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
   42          
   43          
-  44          idata unsigned char Seg_Show_Mod;//0 Ê±¼ä 1 ÎÂ¶È 2 AD 3 ³¬Éù²¨ 4 ÆµÂÊ 5 PWM 
+  44          idata unsigned char Seg_Show_Mod;//0 Ê±ï¿½ï¿½ 1 ï¿½Â¶ï¿½ 2 AD 3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4 Æµï¿½ï¿½ 5 PWM 
   45          void Key_Proc()
   46          {
   47   1        
@@ -62,7 +62,7 @@ line level    source
   52   1        Key_Old = Key_Val;
   53   1        if(Key_Down == 4)
   54   1          pwm_compare= (++pwm_compare)%10;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 2   
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 2   
 
   55   1        if(Key_Down != 0)
   56   1          printf("Key_Down: %bu\n",Key_Down);
@@ -79,7 +79,7 @@ line level    source
   67   1      
   68   1        switch(Seg_Show_Mod)
   69   1        {
-  70   2          case 0://0 Ê±¼ä 1 ÎÂ¶È 2 AD 3 ³¬Éù²¨ 4 ÆµÂÊ 5 PWM 
+  70   2          case 0://0 Ê±ï¿½ï¿½ 1 ï¿½Â¶ï¿½ 2 AD 3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4 Æµï¿½ï¿½ 5 PWM 
   71   2          Seg_Buf[0] = ucRtc[0]/10;
   72   2          Seg_Buf[1] = ucRtc[0]%10;
   73   2          Seg_Buf[2] = 10+',';
@@ -126,7 +126,7 @@ line level    source
  114   2          Seg_Buf[1] = (Freq > 1000000)?Freq/1000000%10:10;
  115   2          Seg_Buf[2] = (Freq > 100000)?Freq/100000%10:10;
  116   2          Seg_Buf[3] = (Freq > 10000)?Freq/10000%10:10;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 3   
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 3   
 
  117   2          Seg_Buf[4] = (Freq > 1000)?Freq/1000%10:10;
  118   2          Seg_Buf[5] = (Freq > 100)?Freq/100%10:10;
@@ -190,156 +190,153 @@ line level    source
  176   1        Distance = Ut_Wave_Data();
  177   1      }
  178          
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 4   
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 4   
 
  179          
  180          void Uart_Proc()
  181          {
  182   1        unsigned char x,y;
- 183   1        if(Uart_Rx_Index == 0)return;
- 184   1        if(Uart_Rx_Tick >= 10)
- 185   1        {
- 186   2          Uart_Rx_Flag = 0;
- 187   2          Uart_Rx_Tick = 0;
- 188   2          
- 189   2          printf("%s",Uart_Rx_Buf);//»ØÏÔ£¬È·±£Ô¤ÆÚ½ÓÊÕÕý³£
- 190   2          if(sscanf(Uart_Rx_Buf,"(%bu,%bu)",&x,&y) == 2)
- 191   2            printf("\r\nI Get x = %bu, y = %bu\r\n",x,y);
- 192   2          else
- 193   2            printf("\r\nERROR\r\n");
- 194   2          
- 195   2          memset(Uart_Rx_Buf,0,Uart_Rx_Index);
- 196   2          Uart_Rx_Index = 0;
- 197   2        }
- 198   1      }
- 199          void Timer1_Init(void)
- 200          {
- 201   1        AUXR &= 0xBF;
- 202   1        TMOD &= 0x0F;
- 203   1        TL1 = 0x18;
- 204   1        TH1 = 0xFC;
- 205   1        TF1 = 0;
- 206   1        TR1 = 1;
- 207   1        ET1 = 1;
- 208   1        EA = 1;
- 209   1      }
- 210          
+ 183   1      
+ 184   1        if(Uart_Rx_Index == 0)return;
+ 185   1        if(Uart_Rx_Tick >= 10)
+ 186   1        {
+ 187   2          Uart_Rx_Flag = 0;
+ 188   2          Uart_Rx_Tick = 0;
+ 189   2          
+ 190   2          printf("%s",Uart_Rx_Buf);//ï¿½ï¿½ï¿½Ô£ï¿½È·ï¿½ï¿½Ô¤ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ 191   2          if(sscanf(Uart_Rx_Buf,"(%bu,%bu)",&x,&y) == 2)
+ 192   2            printf("\r\nI Get x = %bu, y = %bu\r\n",x,y);
+ 193   2          else
+ 194   2            printf("\r\nERROR\r\n");
+ 195   2          
+ 196   2          memset(Uart_Rx_Buf,0,Uart_Rx_Index);
+ 197   2          Uart_Rx_Index = 0;
+ 198   2        }
+ 199   1      }
+ 200          void Timer1_Init(void)
+ 201          {
+ 202   1        AUXR &= 0xBF;
+ 203   1        TMOD &= 0x0F;
+ 204   1        TL1 = 0x18;
+ 205   1        TH1 = 0xFC;
+ 206   1        TF1 = 0;
+ 207   1        TR1 = 1;
+ 208   1        ET1 = 1;
+ 209   1        EA = 1;
+ 210   1      }
  211          
- 212          void Timer0_Init(void)    //1ºÁÃë@12.000MHz
- 213          {
- 214   1        AUXR &= 0x7F;     //¶¨Ê±Æ÷Ê±ÖÓ12TÄ£Ê½
- 215   1        TMOD &= 0xF0;     //ÉèÖÃ¶¨Ê±Æ÷Ä£Ê½
- 216   1        TMOD |= 0x05;     //ÉèÖÃ¶¨Ê±Æ÷Ä£Ê½,¼ÆÊýÆ÷²»ÖØ×°ÔØ
- 217   1        TL0 = 0x00;       //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
- 218   1        TH0 = 0x00;       //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
- 219   1        TF0 = 0;        //Çå³ýTF0±êÖ¾
- 220   1        TR0 = 1;        //¶¨Ê±Æ÷0¿ªÊ¼¼ÆÊ±
- 221   1      
- 222   1      }
- 223          
+ 212          
+ 213          void Timer0_Init(void)    //1ï¿½ï¿½ï¿½ï¿½@12.000MHz
+ 214          {
+ 215   1        AUXR &= 0x7F;     //ï¿½ï¿½Ê±ï¿½ï¿½Ê±ï¿½ï¿½12TÄ£Ê½
+ 216   1        TMOD &= 0xF0;     //ï¿½ï¿½ï¿½Ã¶ï¿½Ê±ï¿½ï¿½Ä£Ê½
+ 217   1        TMOD |= 0x05;     //ï¿½ï¿½ï¿½Ã¶ï¿½Ê±ï¿½ï¿½Ä£Ê½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½
+ 218   1        TL0 = 0x00;       //ï¿½ï¿½ï¿½Ã¶ï¿½Ê±ï¿½ï¿½Ê¼Öµ
+ 219   1        TH0 = 0x00;       //ï¿½ï¿½ï¿½Ã¶ï¿½Ê±ï¿½ï¿½Ê¼Öµ
+ 220   1        TF0 = 0;        //ï¿½ï¿½ï¿½TF0ï¿½ï¿½Ö¾
+ 221   1        TR0 = 1;        //ï¿½ï¿½Ê±ï¿½ï¿½0ï¿½ï¿½Ê¼ï¿½ï¿½Ê±
+ 222   1      
+ 223   1      }
  224          
- 225          void Timer1_Isr(void) interrupt 3
- 226          {
- 227   1        uwTick++;
- 228   1        Seg_Pos = (++Seg_Pos) % 8;
- 229   1        if(Seg_Buf[Seg_Pos] > 20)
- 230   1        {
- 231   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
- 232   2        }else
- 233   1        {
- 234   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
- 235   2        }
- 236   1        if(++Time_1s == 1000)
- 237   1        {
- 238   2          Time_1s = 0;
- 239   2          Freq = TH0 << 8|TL0;
- 240   2          TH0 = TL0 = 0;
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 5   
+ 225          
+ 226          void Timer1_Isr(void) interrupt 3
+ 227          {
+ 228   1        uwTick++;
+ 229   1        Seg_Pos = (++Seg_Pos) % 8;
+ 230   1        if(Seg_Buf[Seg_Pos] > 20)
+ 231   1        {
+ 232   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos]- ',',1);
+ 233   2        }else
+ 234   1        {
+ 235   2          Seg_Disp(Seg_Pos,Seg_Buf[Seg_Pos],0);
+ 236   2        }
+ 237   1        if(++Time_1s == 1000)
+ 238   1        {
+ 239   2          Time_1s = 0;
+ 240   2          Freq = TH0 << 8|TL0;
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 5   
 
- 241   2        }
- 242   1        //µ÷¹â
- 243   1        pwm_period = (++ pwm_period )%10;
- 244   1        if(pwm_period<pwm_compare)
- 245   1          Led_Disp(ucLed);//Èç¹û²»µ÷¹â£¬Òª·ÅÔÚLed_Disp
- 246   1        else
- 247   1          Led_Off();
- 248   1        if(Uart_Rx_Flag) Uart_Rx_Tick ++;
- 249   1      }
- 250          
+ 241   2          TH0 = TL0 = 0;
+ 242   2        }
+ 243   1        //ï¿½ï¿½ï¿½ï¿½
+ 244   1        pwm_period = (++ pwm_period )%10;
+ 245   1        if(pwm_period<pwm_compare)
+ 246   1          Led_Disp(ucLed);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬Òªï¿½ï¿½ï¿½ï¿½Led_Disp
+ 247   1        else
+ 248   1          Led_Off();
+ 249   1        if(Uart_Rx_Flag) Uart_Rx_Tick ++;
+ 250   1      }
  251          
- 252          void Uart1_Isr(void) interrupt 4
- 253          {
- 254   1        if (RI)       //¼ì²â´®¿Ú1½ÓÊÕÖÐ¶Ï
- 255   1        {
- 256   2          Uart_Rx_Flag = 1;
- 257   2          Uart_Rx_Tick = 0;//ÖØÖÃ¼ÆÊ±Æ÷
- 258   2          Uart_Rx_Buf[Uart_Rx_Index++] = SBUF;
- 259   2          RI = 0;     //Çå³ý´®¿Ú1½ÓÊÕÖÐ¶ÏÇëÇóÎ»
- 260   2          if(Uart_Rx_Index > 10)
- 261   2          {
- 262   3            Uart_Rx_Index = 0;
- 263   3            memset(Uart_Rx_Buf,0,10);
- 264   3          }
- 265   2        }
- 266   1      }
- 267          
- 268          typedef struct
- 269          {
- 270            void(*task_func)(void);
- 271            unsigned long int rate_ms;
- 272            unsigned long int last_ms;
- 273          }task_t;
- 274          idata task_t Scheduler_Task[]={
- 275            {Led_Proc,1,0},
- 276            {Key_Proc,10,0},
- 277            {Seg_Proc,20,0},
- 278            {Get_Time,100,0},
- 279            {Get_Temperature,300,0},
- 280            {AD_DA,150,0},
- 281            {Distance_Get,120,0},
- 282            {Uart_Proc,10,0}
- 283          };
- 284          idata unsigned char task_num;
- 285          void Scheduler_Init()
- 286          {
- 287   1        task_num = sizeof(Scheduler_Task)/sizeof(task_t);
- 288   1      }
- 289          void Scheduler_Run()
- 290          {
- 291   1        unsigned char i;
- 292   1        for(i=0;i<task_num;i++)
- 293   1        {
- 294   2          unsigned long int now_time = uwTick;
- 295   2          if(now_time >= (Scheduler_Task[i].rate_ms+Scheduler_Task[i].last_ms))
- 296   2          {
- 297   3            Scheduler_Task[i].last_ms = now_time;
- 298   3            Scheduler_Task[i].task_func();
- 299   3          }
- 300   2        }
- 301   1      }
- 302          void main()
-C51 COMPILER V9.59.0.0   MAIN                                                              02/21/2026 12:23:34 PAGE 6   
+ 252          
+ 253          void Uart1_Isr(void) interrupt 4
+ 254          {
+ 255   1        if (RI)
+ 256   1        {
+ 257   2          Uart_Rx_Flag = 1;
+ 258   2          Uart_Rx_Tick = 0;
+ 259   2          if(Uart_Rx_Index < 10)
+ 260   2            Uart_Rx_Buf[Uart_Rx_Index++] = SBUF;
+ 261   2          RI = 0;
+ 262   2        }
+ 263   1      }
+ 264          
+ 265          typedef struct
+ 266          {
+ 267            void(*task_func)(void);
+ 268            unsigned long int rate_ms;
+ 269            unsigned long int last_ms;
+ 270          }task_t;
+ 271          idata task_t Scheduler_Task[]={
+ 272            {Led_Proc,1,0},
+ 273            {Key_Proc,10,0},
+ 274            {Seg_Proc,20,0},
+ 275            {Get_Time,100,0},
+ 276            {Get_Temperature,300,0},
+ 277            {AD_DA,150,0},
+ 278            {Distance_Get,120,0},
+ 279            {Uart_Proc,10,0}
+ 280          };
+ 281          idata unsigned char task_num;
+ 282          void Scheduler_Init()
+ 283          {
+ 284   1        task_num = sizeof(Scheduler_Task)/sizeof(task_t);
+ 285   1      }
+ 286          void Scheduler_Run()
+ 287          {
+ 288   1        unsigned char i;
+ 289   1        for(i=0;i<task_num;i++)
+ 290   1        {
+ 291   2          unsigned long int now_time = uwTick;
+ 292   2          if(now_time >= (Scheduler_Task[i].rate_ms+Scheduler_Task[i].last_ms))
+ 293   2          {
+ 294   3            Scheduler_Task[i].last_ms = now_time;
+ 295   3            Scheduler_Task[i].task_func();
+ 296   3          }
+ 297   2        }
+ 298   1      }
+ 299          void main()
+ 300          {
+ 301   1        System_Init();
+ 302   1        Scheduler_Init();
+C51 COMPILER V9.59.0.0   MAIN                                                              03/01/2026 14:36:17 PAGE 6   
 
- 303          {
- 304   1        System_Init();
- 305   1        Scheduler_Init();
- 306   1        Set_Rtc(ucRtc);
- 307   1        
- 308   1        EEPROM_Read(EEPROM_Data_R,0,8);
- 309   1        EEPROM_Write(EEPROM_Data_W,0,8);
- 310   1        EEPROM_Read(EEPROM_Data_R,0,8);
- 311   1        Timer0_Init();
- 312   1        Uart1_Init();
- 313   1        Timer1_Init();
- 314   1        while(1)
- 315   1        {
- 316   2          Scheduler_Run();
- 317   2        }
- 318   1      }
+ 303   1        Set_Rtc(ucRtc);
+ 304   1        
+ 305   1        EEPROM_Read(EEPROM_Data_R,0,8);
+ 306   1        EEPROM_Write(EEPROM_Data_W,0,8);
+ 307   1        EEPROM_Read(EEPROM_Data_R,0,8);
+ 308   1        Timer0_Init();
+ 309   1        Uart1_Init();
+ 310   1        Timer1_Init();
+ 311   1        while(1)
+ 312   1        {
+ 313   2          Scheduler_Run();
+ 314   2        }
+ 315   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1521    ----
+   CODE SIZE        =   1462    ----
    CONSTANT SIZE    =     65    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =     42    ----
