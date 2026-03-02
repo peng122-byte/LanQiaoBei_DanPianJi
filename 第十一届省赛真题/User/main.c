@@ -19,15 +19,16 @@
 
 idata unsigned long int uwTick;                          /* 系统节拍计数器(1ms递增，由Timer1中断驱动) */
 
-pdata unsigned char ucLed[8] = {1,0,1,0,1,0,1,0};       /* LED状态数组(0=灭,1=亮)，对应L1~L8 */
-pdata unsigned char Seg_Buf[8] = {1,2,3,4,5,6,7,8}; /* 数码管显示缓冲区(10=灭,0~9=数字,加','=带小数点) */
+pdata unsigned char ucLed[8] = {0,0,0,0,0,0,0,0};       /* LED状态数组(0=灭,1=亮)，对应L1~L8 */
+pdata unsigned char Seg_Buf[8] = {11,10,10,10,10,10,10,10}; /* 数码管显示缓冲区(10=灭,0~9=数字,加','=带小数点) */
 idata unsigned char Seg_Pos = 0;                         /* 当前扫描的数码管位(0~7循环) */
 idata unsigned char Key_Val, Key_Old, Key_Up, Key_Down;  /* 按键状态：当前值/上次值/松开事件/按下事件 */
-idata unsigned int Temperature_10x;                       /* 温度值(放大10倍，如256=25.6°C) */
+idata unsigned int Temperature_10x ,Temperature_1x;                       /* 温度值(放大10倍，如256=25.6°C) */
 idata unsigned char Seg_Show_Mod;                         /* 数码管显示模式(0~1) */
 idata unsigned char Temperature_Max = 30, Temperature_Min = 20;      /*温度上限 温度下限*/
 idata unsigned char Temperature_Max_Set = 30, Temperature_Min_Set = 20;      /*温度上限设置 温度下限设置*/
-idata unsigned char Temperature_Index;                      //温度设置索引       
+idata unsigned char Temperature_Index;   //温度设置索引       
+idata unsigned char Error;
 /* ==================== 任务处理函数 ==================== */
 
 /**
@@ -47,9 +48,22 @@ void Key_Proc()
 	switch(Key_Down)
 	{
 		case 4:
-			
-			Seg_Show_Mod = 0;
-			if(Seg_Show_Mod)
+			if(++Seg_Show_Mod == 2)
+			{
+				if(Temperature_Max_Set >= Temperature_Min_Set)
+				{
+					Temperature_Max = Temperature_Max_Set;
+					Temperature_Min = Temperature_Min_Set;
+					Error = 0;
+				}					
+				else 
+				{
+					Temperature_Max_Set = Temperature_Max;
+					Temperature_Min_Set = Temperature_Min;
+					Error++;
+				}
+				Seg_Show_Mod = 0;
+			}
 				
 			
 		break;
@@ -118,11 +132,11 @@ void Seg_Proc()
 		Seg_Buf[0] = 12;
 		Seg_Buf[1] = 10;
 		Seg_Buf[2] = 10;
-		Seg_Buf[3] = Temperature_Max /10 %10;
-		Seg_Buf[4] = Temperature_Max %10;
+		Seg_Buf[3] = Temperature_Max_Set /10 %10;
+		Seg_Buf[4] = Temperature_Max_Set %10;
 		Seg_Buf[5] = 10;
-		Seg_Buf[6] = Temperature_Min /10 %10;
-		Seg_Buf[7] = Temperature_Min %10;
+		Seg_Buf[6] = Temperature_Min_Set /10 %10;
+		Seg_Buf[7] = Temperature_Min_Set %10;
 		break;
 
 	}
@@ -131,21 +145,30 @@ void Seg_Proc()
 
 void Led_Proc()
 {
-	
-	
+	if(Temperature_1x > Temperature_Max) ucLed[0] = 1;
+	else ucLed[0] = 0;
+	if((Temperature_1x <= Temperature_Max) && (Temperature_1x >= Temperature_Min)) ucLed[1] = 1;
+	else ucLed[1] = 0;
+	if(Temperature_1x < Temperature_Min) ucLed[2] = 1;
+	else ucLed[2] = 0;
+	if(Error) ucLed[3] = 1;
+	else ucLed[3] = 0;
 }
 
 
 void Get_Temperature()
 {
 	Temperature_10x = rd_temperature() * 10;
+	Temperature_1x = Temperature_10x /10;
 }
 
 
 void AD_DA()
 {
-	
-	Da_Write(3 * 51);                           // DA输出约3V
+	if(Temperature_1x > Temperature_Max) Da_Write(4 * 51);
+	if((Temperature_1x <= Temperature_Max) && (Temperature_1x >= Temperature_Min)) Da_Write(3 * 51);
+	if(Temperature_1x < Temperature_Min) Da_Write(2 * 51);
+                        
 }
 
 
@@ -195,7 +218,7 @@ void Timer1_Isr(void) interrupt 3
 	{
 		Seg_Disp(Seg_Pos, Seg_Buf[Seg_Pos], 0);            // 正常显示，无小数点
 	}
-
+	Led_Disp(ucLed);
 
 }
 

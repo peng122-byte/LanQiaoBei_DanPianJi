@@ -1,4 +1,4 @@
-C51 COMPILER V9.59.0.0   SEG                                                               03/01/2026 21:17:24 PAGE 1   
+C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 11:41:53 PAGE 1   
 
 
 C51 COMPILER V9.59.0.0, COMPILATION OF MODULE SEG
@@ -62,7 +62,7 @@ line level    source
   52   1        /* 位选：选中目标数码管位 */
   53   1        P0 = 0x01 << Wela;     // 左移Wela位，选中对应数码管
   54   1      
-C51 COMPILER V9.59.0.0   SEG                                                               03/01/2026 21:17:24 PAGE 2   
+C51 COMPILER V9.59.0.0   SEG                                                               03/02/2026 11:41:53 PAGE 2   
 
   55   1        temp = P2 & 0x1f;
   56   1        temp = temp | 0xc0;     // 选通Y6C(位选锁存器)
